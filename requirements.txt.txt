@@ -1,4 +1,0 @@
-# RTD/Sphinx Extensions
-# =====================
-nbsphinx
-ipykernel                                    # for nbsphinx
