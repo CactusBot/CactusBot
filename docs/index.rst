@@ -12,7 +12,7 @@ An open source, community-written chat bot for Beam.
    "We strive to combine all of the most popular features from existing bots with
    stunning, innovative new functionalities to create the best chat bot possible."
 
-**CactusBot is currently in open alpha!**
+**CactusBot is currently in closed alpha!**
 
 User Docs:
 
