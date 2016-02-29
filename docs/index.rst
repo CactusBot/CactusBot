@@ -9,30 +9,27 @@ Welcome to CactusBot's Documentation
 
 An open source, community-written chat bot for Beam.
 
-We strive to combine all of the most popular features from existing bots with
-stunning, innovative new functionalities to create the best chat bot possible.
+   "We strive to combine all of the most popular features from existing bots with
+   stunning, innovative new functionalities to create the best chat bot possible."
 
-.. important:
-
-  CactusBot is currently in open alpha.  We encourage using giving feedback
-on how to make this bot even more awesome!
+**CactusBot is currently in open alpha!**
 
 User Docs:
 
 .. toctree::
    :maxdepth: 1
 
-    quickstart
-    support
-    about
+   quickstart
+   support
+   about
 
 Dev Docs:
 
 .. toctree::
    :maxdepth: 1
 
-  contributing
-  api
+   contributing
+   api
 
 
 Indices and tables
