@@ -1,0 +1,11 @@
+# Cactus Requirements
+# =====================
+websockets
+requests
+asyncio                                      # for Python 3.3
+
+
+# RTD/Sphinx Extensions
+# =====================
+nbsphinx
+ipykernel                                    # for nbsphinx
