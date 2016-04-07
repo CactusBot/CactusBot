@@ -33,6 +33,7 @@ class MessageHandler(Beam):
             "sub": SubCommand(),
             "cube": CubeCommand(),
             "temmie": TemmieCommand()
+            "quirkytest": QuirkyTest()
         }
 
     def handle(self, response):
