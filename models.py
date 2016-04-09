@@ -245,7 +245,7 @@ class PointsCommand(Command):
             name=self.points_name + ('s' if user.points != 1 else ''))
 
 class QuirkyTest(Command)
-    def _init_(self, args=None, data=None):
+    def __call__(self, args=None, data=None):
         return "Hai! This is a command!"
 
 class TemmieCommand(Command):
