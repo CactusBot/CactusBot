@@ -1,0 +1,14 @@
+language: python
+python:
+  - "3.4"
+  - "3.5"
+branches:
+  only:
+    - master
+    - develop
+    - //^rel-v.+$//
+install:
+  - pip install flake8
+before_script:
+  - "flake8 ."
+script: nosetests
