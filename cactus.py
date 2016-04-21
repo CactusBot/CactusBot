@@ -2,6 +2,7 @@
 
 from messages import MessageHandler
 from beam import Beam
+from twitch import Twitch
 
 from models import Base, engine
 
