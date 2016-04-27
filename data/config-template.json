@@ -5,6 +5,10 @@
     "username": "USERNAME",
     "password": "PASSWORD"
   },
+  "twitch":{
+    "host":"irc.chat.twitch.tv",
+    "port":6667
+  },
   "spam_protection": {
     "maximum_message_length": 256,
     "maximum_message_capitals": 32,

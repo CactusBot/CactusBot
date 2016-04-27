@@ -1,6 +1,7 @@
-from tornado.websocket import websocket_connect
+import websocket
+import socket
+
 from tornado.gen import coroutine
-from tornado.ioloop import PeriodicCallback
 
 from requests import Session
 from requests.compat import urljoin
@@ -10,27 +11,35 @@ from logging import getLevelName as get_level_name
 from logging import StreamHandler, FileHandler, Formatter
 
 from functools import partial
-from json import dumps, loads
+import json
 
 from re import match
 
 class Twitch():
 
-    def __init__(self):
+    def __init__(self, debug="INFO", **kwargs):
         self._init_logger(debug, kwargs.get("log_to_file", True))
         self.http_session = Session()
+        websocket.enableTrace(True)
 
         with open('data/bots/bot.json', "r+") as config:
-            data = json.load(config)
+            bot = json.load(config)
 
-        self.host = data["twitch"]["host"]
-        self.port = data["twitch"]["port"]
-        self.channel = data["twitch"]["channel"]
-        self.username = data["twitch"]["username"]
-        self.password = data["twitch"]["password"]
+        with open('data/config-template.json', "r+") as config:
+            config = json.load(config)
 
-        self.uri = "ws://" + self.host + ":" + self.port
-        self.twitchSocket = websockets.client.connect(self.uri)
+        self.host = config["twitch"]["host"]
+        self.port = config["twitch"]["port"]
+        self.channel = bot["twitch"]["channel"]
+        self.username = bot["twitch"]["username"]
+        self.password = bot["twitch"]["password"]
+
+        chat_socket = socket.socket()
+        chat_socket.connect((self.host, self.port))
+        chat_socket.send(bytes("PASS " + self.password), 'utf-8')
+        chat_socket.send(bytes("NICK " + self.username), 'utf-8')
+        chat_socket.send(bytes("CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership"), 'utf-8')
+        chat_socket.send(bytes("JOIN #" + self.channel), 'utf-8')
 
     def _init_logger(self, level="INFO", file_logging=True, **kwargs):
         """Initialize logger."""
@@ -77,18 +86,22 @@ class Twitch():
 
         self.logger.info("Logger initialized with level '{}'.".format(level))
 
-    def __exit__(self):
-        self.twitchSocket.close()
-
-    def conntect(self, username, password, channel):
+    def connect(self):
+        self.uri = "ws://" + self.host + ":" + str(self.port)
 
         self.login_information = ['CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership', 'PASS ' + password, 'NICK ' + username, 'JOIN #' + channel]
 
         for login in login_information:
             self.twitchSocket.send(login)
 
+    #@coroutine
     def recv_message(self):
-        print(self.twitchSocket.recv())
+        message = self.twitchSocket.recv()
+        print(message)
+        if message == "ping":
+            self.send_message("PONG :tmi.twitch.tv")
 
-    def send_message(self):
+    def send_message(self, message):
         self.twitchSocket.send("test")
+
+Twitch().connect()
