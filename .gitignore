@@ -72,8 +72,3 @@ target/
 config.json
 stats.json
 data/*.db
-/temp.py
-/CactusBot.pyproj
-*.sln
-/.vs/config
-/.vs/CactusBot/v14
