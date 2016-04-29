@@ -1,5 +1,6 @@
-import websocket
-import socket
+from tornado.websocket import websocket_connect
+from tornado.gen import coroutine
+from tornado.ioloop import PeriodicCallback
 
 from tornado.gen import coroutine
 
@@ -20,7 +21,6 @@ class Twitch():
     def __init__(self, debug="INFO", **kwargs):
         self._init_logger(debug, kwargs.get("log_to_file", True))
         self.http_session = Session()
-        websocket.enableTrace(True)
 
         with open('data/bots/bot.json', "r+") as config:
             bot = json.load(config)
@@ -34,12 +34,7 @@ class Twitch():
         self.username = bot["twitch"]["username"]
         self.password = bot["twitch"]["password"]
 
-        chat_socket = socket.socket()
-        chat_socket.connect((self.host, self.port))
-        chat_socket.send(bytes("PASS " + self.password), 'utf-8')
-        chat_socket.send(bytes("NICK " + self.username), 'utf-8')
-        chat_socket.send(bytes("CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership"), 'utf-8')
-        chat_socket.send(bytes("JOIN #" + self.channel), 'utf-8')
+        self.uri = "ws://" + self.host + ":" + str(self.port)
 
     def _init_logger(self, level="INFO", file_logging=True, **kwargs):
         """Initialize logger."""
@@ -86,20 +81,76 @@ class Twitch():
 
         self.logger.info("Logger initialized with level '{}'.".format(level))
 
-    def connect(self):
-        self.uri = "ws://" + self.host + ":" + str(self.port)
+    def _request(self, url, method="GET", **kwargs):
+        """Send HTTP request to Twitch."""
+        response = self.http_session.request(
+            method, urljoin(self.path, url.lstrip('/')), **kwargs)
+        try:
+            return response.json()
+        except Exception:
+            return response.text
 
-        self.login_information = ['CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership', 'PASS ' + password, 'NICK ' + username, 'JOIN #' + channel]
+    def connect(self, silent=False):
+        """Connect to Twitch"""
+        twitch_socket = websocket_connect(self.uri)
+        twitch_socket.add_done_callback(self.authenticate)
+        print(self.uri)
 
-        for login in login_information:
-            self.twitchSocket.send(login)
+    def authenticate(self, future):
+        """Auths with Twitch"""
+        print("2")
+        if future.exception() is None:
+            self.websocket = future.result()
+            self.websocket.write_message("PASS " + self.password)
+            self.websocket.write_message("NICK " + self.username)
+            self.websocket.write_message("CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership")
+            self.websocket.write_message("JOIN #" + self.channel)
+            print("1")
+            self.recv_message()
+        else:
+            raise ConnectionError(future.exception())
 
-    #@coroutine
-    def recv_message(self):
-        message = self.twitchSocket.recv()
-        print(message)
-        if message == "ping":
-            self.send_message("PONG :tmi.twitch.tv")
+    @coroutine
+    def recv_message(self, handler=None):
+        """Read and handle messages from a Beam chat through a websocket."""
+
+        while True:
+            message = yield self.websocket.read_message()
+
+            if message is None:
+                self.logger.warning(
+                    "Connection to chat server lost. Attempting to reconnect.")
+                self.logger.debug("Connecting to: {server}.".format(
+                    server=self.uri))
+
+                authkey = self.get_chat(
+                    self.connection_information["channel_id"])["authkey"]
+
+                if self.connection_information["silent"]:
+                    websocket_connection.add_done_callback(
+                        partial(
+                            self.authenticate,
+                            self.connection_information["channel_id"]
+                        )
+                    )
+                else:
+                    websocket_connection.add_done_callback(
+                        partial(
+                            self.authenticate,
+                            self.connection_information["channel_id"],
+                            self.connection_information["bot_id"],
+                            authkey
+                        )
+                    )
+
+            response = loads(message)
+
+            self.logger.debug("CHAT: {}".format(response))
+
+            if callable(handler):
+                handler(response)
+            if message == "ping":
+                self.send_message("PONG :tmi.twitch.tv")
 
     def send_message(self, message):
         self.twitchSocket.send("test")
