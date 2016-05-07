@@ -1,11 +1,8 @@
-from tornado.websocket import websocket_connect
-from tornado.gen import coroutine
-from tornado.ioloop import PeriodicCallback
-
-from tornado.gen import coroutine
+import socket
 
 from requests import Session
 from requests.compat import urljoin
+import requests
 
 from logging import getLogger as get_logger
 from logging import getLevelName as get_level_name
@@ -16,28 +13,36 @@ import json
 
 from re import match
 
+import time
+
 class Twitch():
 
     def __init__(self, debug="INFO", **kwargs):
         self._init_logger(debug, kwargs.get("log_to_file", True))
         self.http_session = Session()
 
+        # Change these to however you guys are storing data
         with open('data/bots/bot.json', "r+") as config:
             bot = json.load(config)
 
         with open('data/config-template.json', "r+") as config:
             config = json.load(config)
 
+        # loads data
         self.host = config["twitch"]["host"]
         self.port = config["twitch"]["port"]
         self.channel = bot["twitch"]["channel"]
         self.username = bot["twitch"]["username"]
         self.password = bot["twitch"]["password"]
 
-        self.uri = "ws://" + self.host + ":" + str(self.port)
+        # Creates socket. Leave this alone unless you know the socket module *cough* cubed *cough* not using websockets *cough*
+        self.twitch_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.twitch_socket.connect((self.host, self.port))
+
+        self.authenticate()
 
     def _init_logger(self, level="INFO", file_logging=True, **kwargs):
-        """Initialize logger."""
+        """Initialize logger. Copied from beam.py"""
 
         self.logger = get_logger("CactusBot")
         self.logger.propagate = False
@@ -81,78 +86,70 @@ class Twitch():
 
         self.logger.info("Logger initialized with level '{}'.".format(level))
 
-    def _request(self, url, method="GET", **kwargs):
-        """Send HTTP request to Twitch."""
-        response = self.http_session.request(
-            method, urljoin(self.path, url.lstrip('/')), **kwargs)
-        try:
-            return response.json()
-        except Exception:
-            return response.text
-
-    def connect(self, silent=False):
-        """Connect to Twitch"""
-        twitch_socket = websocket_connect(self.uri)
-        twitch_socket.add_done_callback(self.authenticate)
-        print(self.uri)
-
-    def authenticate(self, future):
+    def authenticate(self):
         """Auths with Twitch"""
-        print("2")
-        if future.exception() is None:
-            self.websocket = future.result()
-            self.websocket.write_message("PASS " + self.password)
-            self.websocket.write_message("NICK " + self.username)
-            self.websocket.write_message("CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership")
-            self.websocket.write_message("JOIN #" + self.channel)
-            print("1")
-            self.recv_message()
-        else:
-            raise ConnectionError(future.exception())
+        self.twitch_socket.send(bytes("PASS " + self.password + "\n", "utf-8"))
+        self.twitch_socket.send(bytes("NICK " + self.username + "\n", "utf-8"))
+        self.twitch_socket.send(bytes("CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership" + "\n", "utf-8"))
+        self.twitch_socket.send(bytes("JOIN #" + self.channel + "\n", "utf-8"))
 
-    @coroutine
-    def recv_message(self, handler=None):
-        """Read and handle messages from a Beam chat through a websocket."""
-
+        self.twitch_login = requests.Session()
+        self.twitch_login.post("https://api.twitch.tv/kraken?oauth_token={password}".format(password=self.password))
+        self.get_subs()
+    def recv_message(self):
+        """Recieves messages from Twitch IRC"""
         while True:
-            message = yield self.websocket.read_message()
+            readbuffer = b""
+            readbuffer = readbuffer + self.twitch_socket.recv(1024)
 
-            if message is None:
-                self.logger.warning(
-                    "Connection to chat server lost. Attempting to reconnect.")
-                self.logger.debug("Connecting to: {server}.".format(
-                    server=self.uri))
+            # Parses out the data recieved by splitting
+            message_list = readbuffer.split(bytes("\n", "UTF-8"))
+            parts = message_list[0].split(bytes(":", "UTF-8"))
+            user = parts[1].split(bytes("!", "UTF-8"))
+            message = parts[-1]
 
-                authkey = self.get_chat(
-                    self.connection_information["channel_id"])["authkey"]
+            # Twitch will sometimes do a keep alive PING. This should respond
+            if "PING" in readbuffer:
+                 self.twitch_socket.send(bytes("PONG :tmi.twitch.tv\r\n", "UTF-8"))
 
-                if self.connection_information["silent"]:
-                    websocket_connection.add_done_callback(
-                        partial(
-                            self.authenticate,
-                            self.connection_information["channel_id"]
-                        )
-                    )
-                else:
-                    websocket_connection.add_done_callback(
-                        partial(
-                            self.authenticate,
-                            self.connection_information["channel_id"],
-                            self.connection_information["bot_id"],
-                            authkey
-                        )
-                    )
-
-            response = loads(message)
-
-            self.logger.debug("CHAT: {}".format(response))
-
-            if callable(handler):
-                handler(response)
-            if message == "ping":
-                self.send_message("PONG :tmi.twitch.tv")
+        return str(user), str(message)
 
     def send_message(self, message):
-        self.twitchSocket.send("test")
+        """Use this to send a message, supports /commands"""
+        self.twitch_socket.send(bytes("PRIVMSG #{channel} :".format(channel=self.channel) + message + "\n", "utf-8"))
 
-Twitch().connect()
+    def get_users(self):
+        """Gets all users in chat, no offical API so need to do this over IRC"""
+        print(self.send_message("/NAMES #{channel}".format(channel-channel)))
+
+    def get_followers(self):
+        """Returns the latest follower"""
+        while True:
+            follows = self.twitch_login.get("https://api.twitch.tv/kraken/channels/{channel}/follows".format(channel=self.channel))
+            newest = follows[0][created_at]
+            second = follows[1][created_at]
+            if second == newest:
+                return follows[0][user][display_name]
+            time.sleep(.1)
+
+    def get_hosts(self):
+        pass
+
+    def get_users(self):
+        pass
+
+    def get_subs(self):
+        """Gets the subs for a channel"""
+        self.twitch_login.get("https://api.twitch.tv/kraken/channels/{channel}/subscriptions".format(channel=self.channel))
+
+    def start_commercial(self, length):
+        """Runs a commercial with the specified length"""
+        self.send_message("/comemrcial {length}".format(length=length))
+
+    def set_title(self, title):
+        """Sets the game on Twitch"""
+        self.twitch_login.put("https://api.twitch.tv/kraken/channels/{channel}".format(channel=self.channel), data={"channel": {"status": title}})
+
+    def set_game(self, game):
+        """Sets the game on Twitch"""
+        self.twitch_login.put("https://api.twitch.tv/kraken/channels/{channel}".format(channel=self.channel), data={"channel": {"game": game}})
