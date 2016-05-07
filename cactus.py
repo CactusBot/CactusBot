@@ -43,6 +43,8 @@ cactus_art = """CactusBot initialized!
       ;,' ';
 
 Made by: 2Cubed, Innectic, and ParadigmShift3d
+
+Twitch port by: pingpong1109
 """
 
 
