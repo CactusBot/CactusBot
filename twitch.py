@@ -95,11 +95,11 @@ class Twitch():
 
         self.twitch_login = requests.Session()
         self.twitch_login.post("https://api.twitch.tv/kraken?oauth_token={password}".format(password=self.password))
-        self.send_message("OHAI")
-        self.get_users()
-        self.get_followers()
-        self.set_game("Creative")
-        self.set_title("OHAI FROM CODE")
+        #self.send_message("OHAI")
+        #self.get_users()
+        #self.get_followers()
+        #self.set_game("Creative")
+        #self.set_title("OHAI FROM CODE")
 
     def recv_message(self):
         """Recieves messages from Twitch IRC"""
@@ -125,20 +125,20 @@ class Twitch():
 
     def get_users(self):
         """Gets all users in chat, no offical API so need to do this over IRC"""
-        print(self.send_message("/NAMES #{channel}".format(channel-channel)))
+        print(self.send_message("/NAMES #{channel}".format(channel=self.channel)))
 
     def get_followers(self):
         """Returns the latest follower"""
         pass
-        while True:
-            follows = self.twitch_login.get("https://api.twitch.tv/kraken/channels/{channel}/follows".format(channel=self.channel))
-            follow = follows.json()
-            print(follow)
-            #newest = follow["created_at"]
-            #second = follow["created_at"]
-            if second == newest:
-                return follow[0][user][display_name]
-            time.sleep(.1)
+        #while True:
+        #    follows = self.twitch_login.get("https://api.twitch.tv/kraken/channels/{channel}/follows".format(channel=self.channel))
+        #    follow = follows.json()
+        #    #print(follow)
+        #    #newest = follow["created_at"]
+        #    #second = follow["created_at"]
+        #    if second == newest:
+        #        return follow[0][user][display_name]
+        #    time.sleep(.1)
 
     def get_hosts(self):
         pass
@@ -147,13 +147,13 @@ class Twitch():
         """Grabs all viewers in chat"""
         pass
         viewers = self.twitch_login.get("https://tmi.twitch.tv/group/user/{channel}/chatters".format(channel=self.channel))
-        return viewers[chatters][viewers]
+        return str(viewers[chatters][viewers])
 
     def get_subs(self):
         """Gets the subs for a channel"""
         pass
         subs = self.twitch_login.get("https://api.twitch.tv/kraken/channels/{channel}/subscriptions".format(channel=self.channel))
-        return subs["subscriptions"]["user"]["name"]
+        return str(subs["subscriptions"]["user"]["name"])
 
     def start_commercial(self, length):
         """Runs a commercial with the specified length"""
