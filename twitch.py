@@ -95,7 +95,12 @@ class Twitch():
 
         self.twitch_login = requests.Session()
         self.twitch_login.post("https://api.twitch.tv/kraken?oauth_token={password}".format(password=self.password))
-        self.get_subs()
+        self.send_message("OHAI")
+        self.get_users()
+        self.get_followers()
+        self.set_game("Creative")
+        self.set_title("OHAI FROM CODE")
+
     def recv_message(self):
         """Recieves messages from Twitch IRC"""
         while True:
@@ -124,27 +129,35 @@ class Twitch():
 
     def get_followers(self):
         """Returns the latest follower"""
+        pass
         while True:
             follows = self.twitch_login.get("https://api.twitch.tv/kraken/channels/{channel}/follows".format(channel=self.channel))
-            newest = follows[0][created_at]
-            second = follows[1][created_at]
+            follow = follows.json()
+            print(follow)
+            #newest = follow["created_at"]
+            #second = follow["created_at"]
             if second == newest:
-                return follows[0][user][display_name]
+                return follow[0][user][display_name]
             time.sleep(.1)
 
     def get_hosts(self):
         pass
 
-    def get_users(self):
+    def get_viewers(self):
+        """Grabs all viewers in chat"""
         pass
+        viewers = self.twitch_login.get("https://tmi.twitch.tv/group/user/{channel}/chatters".format(channel=self.channel))
+        return viewers[chatters][viewers]
 
     def get_subs(self):
         """Gets the subs for a channel"""
-        self.twitch_login.get("https://api.twitch.tv/kraken/channels/{channel}/subscriptions".format(channel=self.channel))
+        pass
+        subs = self.twitch_login.get("https://api.twitch.tv/kraken/channels/{channel}/subscriptions".format(channel=self.channel))
+        return subs["subscriptions"]["user"]["name"]
 
     def start_commercial(self, length):
         """Runs a commercial with the specified length"""
-        self.send_message("/comemrcial {length}".format(length=length))
+        self.send_message(bytes("PRIVMSG #{channel} : /comemrcial {length}\n".format(channel=self.channel, length=length), "UTF-8"))
 
     def set_title(self, title):
         """Sets the game on Twitch"""
@@ -153,3 +166,5 @@ class Twitch():
     def set_game(self, game):
         """Sets the game on Twitch"""
         self.twitch_login.put("https://api.twitch.tv/kraken/channels/{channel}".format(channel=self.channel), data={"channel": {"game": game}})
+
+Twitch()
