@@ -136,6 +136,34 @@ class User(Base):
     offenses = Column(Integer, default=0)
 
     points = Column(Integer, default=0)
+    followed = Column(Boolean, default=False)
+
+    def has_followed(id):
+        user = session.query(User).filter_by(
+            id=id).first()
+
+        if user:
+            if user.followed == 1:
+                return True
+            else:
+                user.followed = 1
+                session.add(user)
+                session.commit()
+
+                return False
+        user.followed = 1
+        session.add(user)
+        session.commit()
+
+        return False
+
+    def exists(id):
+        user = session.query(User).filter_by(id=id).first()
+
+        if user:
+            return True
+        else:
+            return False
 
 
 class CommandCommand(Command):
@@ -347,68 +375,71 @@ class RepeatCommand(Command):
 
     @mod_only
     def __call__(self, args, data):
-        if args[1] == "add":
-            if len(args) > 3:
-                try:
-                    interval = int(args[2])
-                except ValueError:
-                    return "Invalid interval: '{}'.".format(args[2])
+        if args is None or args is "" or args == "":
+            return 'Please enter an argument. add/remove/list'
+        else:
+            if args[1] == "add":
+                if len(args) > 3:
+                    try:
+                        interval = int(args[2])
+                    except ValueError:
+                        return "Invalid interval: '{}'.".format(args[2])
 
-                repeat = session.query(Repeat).filter_by(
-                    command_name=args[3]).first()
+                    repeat = session.query(Repeat).filter_by(
+                        command_name=args[3]).first()
 
-                if repeat:
-                    repeat.interval = interval
-                    repeat.arguments = ' '.join(args[3:])
-                    periodic_callback = self.repeats[repeat.command.command]
-                    periodic_callback.callback_time = interval * 1000
-                    periodic_callback.stop()
-                    periodic_callback.start()
-                    session.add(repeat)
-                    session.commit()
-                    return "Repeat updated."
+                    if repeat:
+                        repeat.interval = interval
+                        repeat.arguments = ' '.join(args[3:])
+                        periodic_callback = self.repeats[repeat.command.command]
+                        periodic_callback.callback_time = interval * 1000
+                        periodic_callback.stop()
+                        periodic_callback.start()
+                        session.add(repeat)
+                        session.commit()
+                        return "Repeat updated."
 
-                command = session.query(Command).filter_by(command=args[3])
-                if command.first():
-                    command = command.first()
-                    repeat = Repeat(
-                        command_object=command,
-                        interval=interval,
-                        arguments=' '.join(args[3:])
+                    command = session.query(Command).filter_by(command=args[3])
+                    if command.first():
+                        command = command.first()
+                        repeat = Repeat(
+                            command_object=command,
+                            interval=interval,
+                            arguments=' '.join(args[3:])
+                        )
+
+                        periodic_callback = PeriodicCallback(
+                            partial(self.send, repeat),
+                            interval * 1000
+                        )
+                        self.repeats[args[3]] = periodic_callback
+                        periodic_callback.start()
+                        session.add(repeat)
+                        session.commit()
+                        return "Repeating command '!{}' every {} seconds.".format(
+                            command.command, interval)
+                    return "Undefined command '!{}'.".format(args[3])
+                return "Not enough arguments!"
+            elif args[1] == "remove":
+                if len(args) > 2:
+                    repeat = session.query(Repeat).filter_by(
+                        command_name=args[2]).first()
+                    if repeat is not None:
+                        self.repeats[args[2]].stop()
+                        del self.repeats[args[2]]
+                        session.delete(repeat)
+                        session.commit()
+                        return "Removed repeat for command !{}.".format(args[2])
+                    return "Repeat for !{} does not exist!".format(args[2])
+                return "Not enough arguments!"
+            elif args[1] == "list":
+                repeats = session.query(Repeat).all()
+                return "Repeats: {repeats}".format(
+                    repeats=', '.join(
+                        [r.command.command+' '+str(r.interval) for r in repeats]
                     )
-
-                    periodic_callback = PeriodicCallback(
-                        partial(self.send, repeat),
-                        interval * 1000
-                    )
-                    self.repeats[args[3]] = periodic_callback
-                    periodic_callback.start()
-                    session.add(repeat)
-                    session.commit()
-                    return "Repeating command '!{}' every {} seconds.".format(
-                        command.command, interval)
-                return "Undefined command '!{}'.".format(args[3])
-            return "Not enough arguments!"
-        elif args[1] == "remove":
-            if len(args) > 2:
-                repeat = session.query(Repeat).filter_by(
-                    command_name=args[2]).first()
-                if repeat is not None:
-                    self.repeats[args[2]].stop()
-                    del self.repeats[args[2]]
-                    session.delete(repeat)
-                    session.commit()
-                    return "Removed repeat for command !{}.".format(args[2])
-                return "Repeat for !{} does not exist!".format(args[2])
-            return "Not enough arguments!"
-        elif args[1] == "list":
-            repeats = session.query(Repeat).all()
-            return "Repeats: {repeats}".format(
-                repeats=', '.join(
-                    [r.command.command+' '+str(r.interval) for r in repeats]
                 )
-            )
-        return "Invalid argument: {}.".format(args[1])
+            return "Invalid argument: {}.".format(args[1])
 
     def send(self, repeat):
         try:

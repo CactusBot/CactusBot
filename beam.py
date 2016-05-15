@@ -1,3 +1,5 @@
+""" This file is all the Beam related stuff """
+
 from tornado.websocket import websocket_connect
 from tornado.gen import coroutine
 from tornado.ioloop import PeriodicCallback
@@ -13,6 +15,8 @@ from functools import partial
 from json import dumps, loads
 
 from re import match
+
+from models import User, session
 
 
 class Beam:
@@ -95,6 +99,9 @@ class Beam:
         """Get chat server data."""
         return self._request("/chats/{id}".format(id=id))
 
+    def get_chat_users(self, id):
+        return self._request("chats/{id}/users".format(id=id))
+
     def connect(self, channel_id, bot_id, silent=False):
         """Connect to a Beam chat through a websocket."""
 
@@ -124,20 +131,52 @@ class Beam:
             websocket_connection.add_done_callback(
                 partial(self.authenticate, channel_id, bot_id, authkey))
 
+    def _init_users(self):
+        viewers = set(
+            user["userId"] for user in
+            self.get_chat_users( self.channel_data["id"]))
+
+        stored_users = set(
+            user[0] for user in session.query(User).with_entities(User.id))
+
+        for user in viewers - stored_users:
+            user = User(id=user, joins=1)
+            session.add(user)
+
+        session.commit()
+
+        self.logger.info("Successfully added new users to database.")
+
     def authenticate(self, *args):
         """Authenticate session to a Beam chat through a websocket."""
 
-        future = args[-1]
-        if future.exception() is None:
-            self.websocket = future.result()
-            self.logger.info("Successfully connected to chat {}.".format(
-                self.channel_data["token"]))
+        # HACK
 
-            self.send_message(*args[:-1], method="auth")
+        try:
+            future = args[-1]
+            if future.exception() is None:
+                self.websocket = future.result()
+                self.logger.info("Successfully connected to chat {}.".format(
+                    self.channel_data["token"]))
 
-            self.read_chat(self.handle)
-        else:
-            raise ConnectionError(future.exception())
+                self.send_message(*args[:-1], method="auth")
+
+                self.read_chat(self.handle)
+            else:
+                raise ConnectionError(future.exception())
+        except:
+            self.logger.error("There was an issue connecting. Trying again.")
+            future = args[-1]
+            if future.exception() is None:
+                self.websocket = future.result()
+                self.logger.info("Successfully connected to chat {}.".format(
+                    self.channel_data["token"]))
+
+                self.send_message(*args[:-1], method="auth")
+
+                self.read_chat(self.handle)
+            else:
+                raise ConnectionError(future.exception())
 
     def send_message(self, *args, method="msg"):
         """Send a message to a Beam chat through a websocket."""
@@ -184,7 +223,11 @@ class Beam:
             if message is None:
                 self.logger.warning(
                     "Connection to chat server lost. Attempting to reconnect.")
-                self.server_offset += 1
+                if self.server_offset == 1:
+                    self.server_offset == 0
+                else:
+                    self.server_offset += 1
+
                 self.server_offset %= len(self.servers)
                 self.logger.debug("Connecting to: {server}.".format(
                     server=self.servers[self.server_offset]))
@@ -192,18 +235,30 @@ class Beam:
                 websocket_connection = websocket_connect(
                     self.servers[self.server_offset])
 
-                authkey = self.get_chat(
-                    self.connection_information["channel_id"])["authkey"]
+                # NOTE: We'll remove these try/excepts in the future
+                #   Current just for debugging, we need to see the returned
+                #   values from self.get_chat()
+                try:
+                    authkey = self.get_chat(
+                        self.connection_information["channel_id"])["authkey"]
+                except TypeError as e:
+                    self.logger.warning("Caught crash-worthy error!")
+                    self.logger.warning(repr(e))
+                    self.logger.warning(self.get_chat(
+                        self.connection_information["channel_id"]))
+
+                    # Skip this loop
+                    continue
 
                 if self.connection_information["silent"]:
-                    websocket_connection.add_done_callback(
+                    return websocket_connection.add_done_callback(
                         partial(
                             self.authenticate,
                             self.connection_information["channel_id"]
                         )
                     )
                 else:
-                    websocket_connection.add_done_callback(
+                    return websocket_connection.add_done_callback(
                         partial(
                             self.authenticate,
                             self.connection_information["channel_id"],
@@ -212,15 +267,21 @@ class Beam:
                         )
                     )
 
-            response = loads(message)
+            else:
+                response = loads(message)
 
-            self.logger.debug("CHAT: {}".format(response))
+                self.logger.debug("CHAT: {}".format(response))
 
-            if callable(handler):
-                handler(response)
+                if callable(handler):
+                    handler(response)
 
     def connect_to_liveloading(self, channel_id, user_id):
         """Connect to Beam liveloading."""
+
+        self.liveloading_connection_information = {
+            "channel_id": channel_id,
+            "user_id": user_id
+        }
 
         liveloading_websocket_connection = websocket_connect(
             "wss://realtime.beam.pro/socket.io/?EIO=3&transport=websocket")
@@ -305,7 +366,10 @@ class Beam:
             message = yield self.liveloading_websocket.read_message()
 
             if message is None:
-                raise ConnectionError
+                self.logger.warning("Connection to liveloading server lost. "
+                                    "Attempting to reconnect.")
+                return self.connect_to_liveloading(
+                    **self.liveloading_connection_information)
 
             packet = self.parse_liveloading_message(message)
 
@@ -317,12 +381,20 @@ class Beam:
                     if packet["data"][1].get("following"):
                         self.logger.info("- {} followed.".format(
                             packet["data"][1]["user"]["username"]))
-                        self.send_message(
-                            "Thanks for the follow, @{}!".format(
-                                packet["data"][1]["user"]["username"]))
+
+                        if not User.has_followed(packet["data"][1]["user"]["id"]):
+                            self.send_message(
+                                "Thanks for the follow, @{}!".format(
+                                    packet["data"][1]["user"]["username"]))
+                            self.send_message(
+                                self.alert_user, packet["data"][1]["user"]["username"] + "Just followed the channel",
+                                method="whisper")
                     elif packet["data"][1].get("subscribed"):
                         self.logger.info("- {} subscribed.".format(
                             packet["data"][1]["user"]["username"]))
                         self.send_message(
                             "Thanks for the subscription, @{}! <3".format(
                                 packet["data"][1]["user"]["username"]))
+                        self.send_message(
+                            self.alert_user, packet["data"][1]["user"]["username"] + "Just subscribed to the channel",
+                            method="whisper")

@@ -43,17 +43,27 @@ class MessageHandler(Beam):
     def handle(self, response):
         """Handle responses from a Beam websocket."""
 
+        if response is not None:
+            if "data" not in response:
+                self.logger.debug("Data key not in response!")
+                self.logger.debug("response:\n\t{}".format(response))
+                return None
+        else:
+            # response IS None, so it's nothing
+            return None
+
         data = response["data"]
 
-        if "event" in response:
-            if response["event"] in self.events:
-                self.events[response["event"]](data)
-            else:
-                self.logger.debug("No handler found for event {}.".format(
-                    response["event"]
-                ))
-        elif isinstance(data, dict) and data.get("authenticated"):
-            self.send_message("CactusBot activated. Enjoy! :cactus")
+        if isinstance(data, dict):
+            if "event" in response:
+                if response["event"] in self.events:
+                    self.events[response["event"]](data)
+                else:
+                    self.logger.debug("No handler found for event {}.".format(
+                        response["event"]
+                    ))
+            elif data.get("authenticated") and response["id"] == 0:
+                self.send_message("CactusBot activated. Enjoy! :cactus")
 
     def message_handler(self, data):
         """Handle chat message packets from Beam."""
@@ -171,10 +181,21 @@ class MessageHandler(Beam):
         user = session.query(User).filter_by(id=data["id"]).first()
 
         if not user:
-            user = User(id=data["id"], joins=1)
+            new_user = User(
+                id=data["id"],
+                friend=False,
+                joins=1,
+                messages=0,
+                offenses=0,
+                points=0,
+                followed=0
+            )
+
+            session.add(new_user)
         else:
-            session.add(user)
             user.joins += 1
+            session.add(user)
+
         session.commit()
 
         self.logger.info("- {user} joined".format(
