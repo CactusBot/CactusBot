@@ -2,6 +2,7 @@
 
 from messages import MessageHandler
 from beam import Beam
+from twitch import Twitch
 
 from models import Base, engine
 
@@ -42,6 +43,8 @@ cactus_art = """CactusBot initialized!
       ;,' ';
 
 Made by: 2Cubed, Innectic, and ParadigmShift3d
+
+Twitch port by: pingpong1109
 """
 
 

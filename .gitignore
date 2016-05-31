@@ -72,3 +72,9 @@ target/
 config.json
 stats.json
 data/*.db
+/.vs
+/data/bots/bot.json
+/temp.py
+*.sln
+*.pyproj
+/bot.db
