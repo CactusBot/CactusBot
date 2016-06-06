@@ -1,5 +1,7 @@
 # CactusBot
 
+[![Join the chat at https://gitter.im/CactusBot/CactusBot](https://badges.gitter.im/CactusBot/CactusBot.svg)](https://gitter.im/CactusBot/CactusBot?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ## An open source, community-written chat bot for Beam. 🌵
 
 [![Build Status](https://travis-ci.org/CactusBot/CactusBot.svg?branch=master)](https://travis-ci.org/CactusBot/CactusBot)
