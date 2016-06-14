@@ -363,7 +363,8 @@ class RepeatCommand(Command):
                     if repeat:
                         repeat.interval = interval
                         repeat.arguments = ' '.join(args[3:])
-                        periodic_callback = self.repeats[repeat.command.command]
+                        periodic_callback = self.repeats[
+                            repeat.command.command]
                         periodic_callback.callback_time = interval * 1000
                         periodic_callback.stop()
                         periodic_callback.start()
@@ -388,7 +389,7 @@ class RepeatCommand(Command):
                         periodic_callback.start()
                         session.add(repeat)
                         session.commit()
-                        return "Repeating command '!{}' every {} seconds.".format(
+                        return "Repeating '!{}' every {} seconds.".format(
                             command.command, interval)
                     return "Undefined command '!{}'.".format(args[3])
                 return "Not enough arguments!"
@@ -401,15 +402,15 @@ class RepeatCommand(Command):
                         del self.repeats[args[2]]
                         session.delete(repeat)
                         session.commit()
-                        return "Removed repeat for command !{}.".format(args[2])
+                        return "Removed repeat for !{}.".format(args[2])
                     return "Repeat for !{} does not exist!".format(args[2])
                 return "Not enough arguments!"
             elif args[1] == "list":
                 repeats = session.query(Repeat).all()
                 return "Repeats: {repeats}".format(
-                    repeats=', '.join(
-                        [r.command.command+' '+str(r.interval) for r in repeats]
-                    )
+                    repeats=', '.join([
+                        r.command.command+' '+str(r.interval) for r in repeats
+                    ])
                 )
             return "Invalid argument: {}.".format(args[1])
 
