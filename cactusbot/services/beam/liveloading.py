@@ -48,6 +48,7 @@ class BeamLiveloading(WebSocket):
                 "channel:{channel}:status",
                 "channel:{channel}:followed",
                 "channel:{channel}:subscribed",
+                "channel:{channel}:hosted",
                 "user:{user}:followed",
                 "user:{user}:subscribed",
                 "user:{user}:achievement"
@@ -69,7 +70,7 @@ class BeamLiveloading(WebSocket):
                 "url": "/api/v1/live"
             }
         ]
-        self.websocket.send_str('420' + json.dumps(packet))
+        self.websocket.send_str("420" + json.dumps(packet))
 
         self.logger.info("Successfully subscribed to liveloading interfaces.")
 

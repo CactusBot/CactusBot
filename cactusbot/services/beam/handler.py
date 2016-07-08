@@ -28,9 +28,9 @@ class BeamHandler(Handler):
         self.liveloading = None
 
         self.chat_events = {
-            "ChatMessage": self.on_message,
-            "UserJoin": self.on_join,
-            "UserLeave": self.on_leave
+            "ChatMessage": self.on_message
+            # "UserJoin": self.on_join,
+            # "UserLeave": self.on_leave
         }
 
         self.liveloading_events = {
