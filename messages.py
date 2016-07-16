@@ -66,115 +66,110 @@ class MessageHandler(Beam):
     def message_handler(self, data):
         """Handle chat message packets from Beam."""
 
-        try:
-            parsed = ''.join(
-                [obj["text"] for obj in data["message"]["message"]]
-            )
-        except:
-            self.logger.error("Caught an error.")
+        parsed = ''.join(
+            [obj["text"] for obj in data["message"]["message"]]
+        )
+        self.logger.info("{bot}{me}[{user}] {message}".format(
+            bot='$ ' if data["user_name"] == self.config["auth"][
+                "username"] else '',
+            me='*' if data["message"]["meta"].get("me") else '',
+            user=data["user_name"] + " > " + self.config["auth"]
+                    ["username"] if data["message"]["meta"].get(
+                    "whisper") else data["user_name"],
+            message=parsed)
+        )
+
+        user = session.query(User).filter_by(id=data["user_id"]).first()
+        if user is not None:
+            user.messages += 1
+            session.commit()
         else:
-            self.logger.info("{bot}{me}[{user}] {message}".format(
-                bot='$ ' if data["user_name"] == self.config["auth"][
-                    "username"]
-                    else '',
-                me='*' if data["message"]["meta"].get("me") else '',
-                user=data["user_name"] + " > " + self.config["auth"]["username"]
-                    if data["message"]["meta"].get("whisper")
-                    else data["user_name"],
-                message=parsed)
-            )
+            user = User(id=data["user_id"], joins=1, messages=1)
+            session.add(user)
+            session.commit()
 
-            user = session.query(User).filter_by(id=data["user_id"]).first()
-            if user is not None:
-                user.messages += 1
-                session.commit()
-            else:
-                user = User(id=data["user_id"], joins=1, messages=1)
-                session.add(user)
-                session.commit()
-
-            mod_roles = ("Owner", "Staff", "Founder", "Global Mod", "Mod")
-            if not (data["user_roles"][0] in mod_roles or user.friend):
-                if (len(parsed) > self.config["spam_protection"].get(
-                        "maximum_message_length", 256)):
-                    self.remove_message(data["channel"], data["id"])
-                    user.offenses += 1
-                    session.commit()
-                    return self.send_message(
-                        data["user_name"], "Please stop spamming.",
-                        method="whisper")
-                elif (sum(char.isupper() for char in parsed) >
-                        self.config["spam_protection"].get(
-                            "maximum_message_capitals", 32)):
-                    self.remove_message(data["channel"], data["id"])
-                    user.offenses += 1
-                    session.commit()
-                    return self.send_message(
-                        data["user_name"], "Please stop speaking in all caps.",
-                        method="whisper")
-                elif (sum(chunk["type"] == "emoticon"
-                          for chunk in data["message"]["message"]) >
-                        self.config["spam_protection"].get(
-                        "maximum_message_emotes", 8)):
-                    self.remove_message(data["channel"], data["id"])
-                    user.offenses += 1
-                    session.commit()
-                    return self.send_message(
-                        data["user_name"], "Please stop spamming emoticons.",
-                        method="whisper")
-                elif (findall((r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|"
-                              r"[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"),
-                              parsed) and not
-                        self.config["spam_protection"].get(
-                            "allow_links", False)):
-                    self.remove_message(data["channel"], data["id"])
-                    user.offenses += 1
-                    session.commit()
-                    return self.send_message(
-                        data["user_name"], "Please stop posting links.",
-                        method="whisper")
-
-            if parsed == "/cry":
+        mod_roles = ("Owner", "Staff", "Founder", "Global Mod", "Mod")
+        if not (data["user_roles"][0] in mod_roles or user.friend):
+            if (len(parsed) > self.config["spam_protection"].get(
+                    "maximum_message_length", 256)):
                 self.remove_message(data["channel"], data["id"])
-                return self.send_message("/me cries with {} :'(".format(
-                    data["user_name"]))
+                user.offenses += 1
+                session.commit()
+                return self.send_message(
+                    data["user_name"], "Please stop spamming.",
+                    method="whisper")
+            elif (sum(char.isupper() for char in parsed) >
+                    self.config["spam_protection"].get(
+                        "maximum_message_capitals", 32)):
+                self.remove_message(data["channel"], data["id"])
+                user.offenses += 1
+                session.commit()
+                return self.send_message(
+                    data["user_name"], "Please stop speaking in all caps.",
+                    method="whisper")
+            elif (sum(chunk["type"] == "emoticon"
+                      for chunk in data["message"]["message"]) >
+                    self.config["spam_protection"].get(
+                    "maximum_message_emotes", 8)):
+                self.remove_message(data["channel"], data["id"])
+                user.offenses += 1
+                session.commit()
+                return self.send_message(
+                    data["user_name"], "Please stop spamming emoticons.",
+                    method="whisper")
+            elif (findall((r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|"
+                          r"[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"),
+                          parsed) and not
+                    self.config["spam_protection"].get(
+                        "allow_links", False)):
+                self.remove_message(data["channel"], data["id"])
+                user.offenses += 1
+                session.commit()
+                return self.send_message(
+                    data["user_name"], "Please stop posting links.",
+                    method="whisper")
 
-            if len(parsed) > 1 and parsed[0].startswith("!"):
-                args = parsed.split()
+        if parsed == "/cry":
+            self.remove_message(data["channel"], data["id"])
+            return self.send_message("/me cries with {} :'(".format(
+                data["user_name"]))
 
-                if args[0][1:] in self.commands:
-                    response = self.commands[args[0][1:]]
-                    if isinstance(response, str):
-                        messages = response
-                    else:
-                        messages = response(args, data)
+        if len(parsed) > 1 and parsed[0].startswith("!"):
+            args = parsed.split()
+
+            if args[0][1:] in self.commands:
+                response = self.commands[args[0][1:]]
+                if isinstance(response, str):
+                    messages = response
                 else:
-                    options = [
-                        ('-'.join(args[:2])[1:], ['-'.join(args[:2])] + args[2:]),
-                        (args[0][1:], args)
-                    ]
+                    messages = response(args, data)
+            else:
+                options = [
+                    ('-'.join(args[:2])[1:], ['-'.join(args[:2])] + args[2:]),
+                    (args[0][1:], args)
+                ]
 
-                    for parse_method in options:
-                        command = session.query(
-                            Command).filter_by(command=parse_method[0]).first()
-                        if command:
-                            messages = command(
-                                parse_method[1], data,
-                                channel_name=self.channel_data["token"]
-                            )
-                            break
-                    else:
-                        messages = "Command not found."
-
-                if isinstance(messages, str):
-                    messages = (messages,)
-
-                if data["message"]["meta"].get("whisper", False):
-                    for message in messages:
-                        self.send_message(
-                            data["user_name"], message, method="whisper")
+                for parse_method in options:
+                    command = session.query(
+                        Command).filter_by(command=parse_method[0]).first()
+                    if command:
+                        messages = command(
+                            parse_method[1], data,
+                            channel_name=self.channel_data["token"]
+                        )
+                        break
                 else:
-                    self.send_message(*messages)
+                    messages = "Command not found."
+
+            if isinstance(messages, str):
+                messages = (messages,)
+
+            if data["message"]["meta"].get("whisper", False):
+                for message in messages:
+                    self.send_message(
+                        data["user_name"], message, method="whisper")
+            else:
+                self.send_message(*messages)
 
     def join_handler(self, data):
         """Handle user join packets from Beam."""

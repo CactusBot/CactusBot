@@ -140,14 +140,6 @@ class User(Base):
     points = Column(Integer, default=0)
     follow_date = Column(DateTime, default=datetime.fromtimestamp(0))
 
-    def exists(id):
-        user = session.query(User).filter_by(id=id).first()
-
-        if user:
-            return True
-        else:
-            return False
-
 
 class CommandCommand(Command):
 
