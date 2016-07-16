@@ -73,8 +73,8 @@ class MessageHandler(Beam):
             bot='$ ' if data["user_name"] == self.config["auth"][
                 "username"] else '',
             me='*' if data["message"]["meta"].get("me") else '',
-            user=data["user_name"] + " > " + self.config["auth"]
-                    ["username"] if data["message"]["meta"].get(
+            user=data["user_name"] + " > " + self.config["auth"]["username"]
+            if data["message"]["meta"].get(
                     "whisper") else data["user_name"],
             message=parsed)
         )
@@ -118,8 +118,8 @@ class MessageHandler(Beam):
                     data["user_name"], "Please stop spamming emoticons.",
                     method="whisper")
             elif (re.findall((r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|"
-                              r"[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
-                             ), parsed) and not
+                              r"[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"),
+                             parsed) and not
                   self.config["spam_protection"].get("allow_links", False)):
                 self.remove_message(data["channel"], data["id"])
                 user.offenses += 1

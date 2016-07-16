@@ -299,7 +299,7 @@ class Beam:
                 "channel:{channel_id}:resubscribed",
                 "channel:{channel_id}:hosted",
                 "user:{user_id}:update"
-)
+            )
             self.subscribe_to_interfaces(
                 *tuple(
                     interface.format(channel_id=channel_id, user_id=user_id)
