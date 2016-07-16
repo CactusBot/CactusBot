@@ -1,6 +1,6 @@
 """Handle all the messages."""
 
-from re import findall
+import re
 
 from beam import Beam
 from models import (Command, User, session, CommandCommand, QuoteCommand,
@@ -117,11 +117,10 @@ class MessageHandler(Beam):
                 return self.send_message(
                     data["user_name"], "Please stop spamming emoticons.",
                     method="whisper")
-            elif (findall((r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|"
-                          r"[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"),
-                          parsed) and not
-                    self.config["spam_protection"].get(
-                        "allow_links", False)):
+            elif (re.findall((r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|"
+                              r"[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
+                             ), parsed) and not
+                  self.config["spam_protection"].get("allow_links", False)):
                 self.remove_message(data["channel"], data["id"])
                 user.offenses += 1
                 session.commit()
