@@ -72,3 +72,7 @@ target/
 config.json
 stats.json
 data/*.db
+data/*.sqlite
+
+# Virtualenv
+venv/

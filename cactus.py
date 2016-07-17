@@ -15,14 +15,13 @@ from functools import reduce, partial
 from tornado.ioloop import IOLoop
 from tornado.autoreload import add_reload_hook, watch, start
 
-from sys import exit
 from traceback import format_exc
 from time import sleep
 
 from argparse import ArgumentParser
 
 
-cactus_art = """CactusBot initialized!
+cactus_art = r"""CactusBot initialized!
 
       ,`""',
       ;' ` ;
@@ -32,7 +31,7 @@ cactus_art = """CactusBot initialized!
 ;,` ; ;' ` ;   ,',        / ____|         | |
 ;`,'; ;`,',;  ;,' ;      | |     __ _  ___| |_ _   _ ___
 ;',`; ;` ' ; ;`'`';      | |    / _` |/ __| __| | | / __|
-;` '',''` `,',`',;       | |___| (_| | (__| |_| |_| \__ \\
+;` '',''` `,',`',;       | |___| (_| | (__| |_| |_| \__ \
  `''`'; ', ;`'`'          \_____\__,_|\___|\__|\__,_|___/
       ;' `';
       ;` ' ;
@@ -58,7 +57,7 @@ class Cactus(MessageHandler, Beam):
         self.stats_file = kwargs.get("stats_file", "data/stats.json")
         self.database = kwargs.get("database", "data/data.db")
 
-        self.silent = kwargs.get("silent", False)
+        self.quiet = kwargs.get("quiet", False)
         self.no_messages = kwargs.get("no_messages", False)
 
     def _init_database(self, database):
@@ -142,6 +141,7 @@ class Cactus(MessageHandler, Beam):
         self._init_database(self.database)
         self.load_config(filename=self.config_file)
         self.load_stats(filename=self.stats_file)
+        self.started = True
 
         while self.config.get("autorestart") or not self.started:
             try:
@@ -149,21 +149,29 @@ class Cactus(MessageHandler, Beam):
                 self.logger.info("Authenticated as: {}.".format(
                     self.bot_data["username"]))
 
-                self.started = True
-
                 self.channel = self.config["channel"]
                 self.channel_data = self.get_channel(self.channel)
 
                 self._init_commands()
+                self._init_users()
 
                 self.connect(
                     self.channel_data["id"],
                     self.bot_data["id"],
-                    silent=self.silent)
+                    quiet=self.quiet)
 
-                self.connect_to_liveloading(
-                    self.channel_data["id"],
-                    self.channel_data["userId"])
+                def connect_liveloading():
+                    try:
+                        self.connect_to_liveloading(
+                            self.channel_data["id"],
+                            self.channel_data["userId"])
+                    except ConnectionError as e:
+                        self.logger.warning("Caught ConnectionError!")
+                        self.logger.warning("Reconnecting to liveloading")
+                        self.logger.warning(e)
+                        connect_liveloading()
+
+                connect_liveloading()
 
                 if str(self.debug).lower() in ("true", "debug"):
                     add_reload_hook(partial(
@@ -211,15 +219,18 @@ if __name__ == "__main__":
     parser = ArgumentParser()
 
     parser.add_argument(
-        "--silent",
-        help="send no messages to chat",
-        action="store_true",
+        "--quiet",
+        help="send no messages to public chat",
+        metavar="USER",
+        nargs='?',
+        const=True,
         default=False
     )
 
     parser.add_argument(
         "--debug",
         help="set custom logger level",
+        metavar="LEVEL",
         nargs='?',
         const=True,
         default="info"

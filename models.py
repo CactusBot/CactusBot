@@ -13,6 +13,8 @@ from random import randrange, choice
 
 from tornado.ioloop import PeriodicCallback
 
+import re
+
 basedir = abspath(dirname(__file__))
 engine = create_engine("sqlite:///" + join(basedir, "data/data.db"))
 Base = declarative_base()
@@ -136,6 +138,7 @@ class User(Base):
     offenses = Column(Integer, default=0)
 
     points = Column(Integer, default=0)
+    follow_date = Column(DateTime, default=datetime.fromtimestamp(0))
 
 
 class CommandCommand(Command):
@@ -202,6 +205,10 @@ class CommandCommand(Command):
 
 class QuoteCommand(Command):
 
+    def __init__(self, http_session):
+        super(QuoteCommand, self).__init__()
+        self.http_session = http_session
+
     @mod_only
     def __call__(self, args, data):
         if len(args) > 1:
@@ -212,6 +219,21 @@ class QuoteCommand(Command):
                 pass
             except AttributeError:
                 return "Undefined quote with ID {}.".format(id)
+
+            if args[1] == "inspirational":
+                try:
+                    data = self.http_session.get(
+                        "http://api.forismatic.com/api/1.0/",
+                        params=dict(
+                            method="getQuote", lang="en", format="json")
+                    ).json()
+                    return "\"{quote}\" -{author}".format(
+                        quote=data["quoteText"].strip(),
+                        author=data["quoteAuthor"].strip()
+                    )
+                except Exception:
+                    return ("Unable to get inspirational quote. "
+                            "Have a :hamster instead.")
 
             if len(args) > 2:
                 if args[1] == "add":
@@ -347,68 +369,70 @@ class RepeatCommand(Command):
 
     @mod_only
     def __call__(self, args, data):
-        if args[1] == "add":
-            if len(args) > 3:
-                try:
-                    interval = int(args[2])
-                except ValueError:
-                    return "Invalid interval: '{}'.".format(args[2])
+        if len(args) > 1:
+            if args[1] == "add":
+                if len(args) > 3:
+                    try:
+                        interval = int(args[2])
+                    except ValueError:
+                        return "Invalid interval: '{}'.".format(args[2])
 
-                repeat = session.query(Repeat).filter_by(
-                    command_name=args[3]).first()
+                    repeat = session.query(Repeat).filter_by(
+                        command_name=args[3]).first()
 
-                if repeat:
-                    repeat.interval = interval
-                    repeat.arguments = ' '.join(args[3:])
-                    periodic_callback = self.repeats[repeat.command.command]
-                    periodic_callback.callback_time = interval * 1000
-                    periodic_callback.stop()
-                    periodic_callback.start()
-                    session.add(repeat)
-                    session.commit()
-                    return "Repeat updated."
+                    if repeat:
+                        repeat.interval = interval
+                        repeat.arguments = ' '.join(args[3:])
+                        callback = self.repeats[repeat.command.command]
+                        callback.callback_time = interval * 1000
+                        callback.stop()
+                        callback.start()
+                        session.add(repeat)
+                        session.commit()
+                        return "Repeat updated."
 
-                command = session.query(Command).filter_by(command=args[3])
-                if command.first():
-                    command = command.first()
-                    repeat = Repeat(
-                        command_object=command,
-                        interval=interval,
-                        arguments=' '.join(args[3:])
-                    )
+                    command = session.query(Command).filter_by(command=args[3])
+                    if command.first():
+                        command = command.first()
+                        repeat = Repeat(
+                            command_object=command,
+                            interval=interval,
+                            arguments=' '.join(args[3:])
+                        )
 
-                    periodic_callback = PeriodicCallback(
-                        partial(self.send, repeat),
-                        interval * 1000
-                    )
-                    self.repeats[args[3]] = periodic_callback
-                    periodic_callback.start()
-                    session.add(repeat)
-                    session.commit()
-                    return "Repeating command '!{}' every {} seconds.".format(
-                        command.command, interval)
-                return "Undefined command '!{}'.".format(args[3])
-            return "Not enough arguments!"
-        elif args[1] == "remove":
-            if len(args) > 2:
-                repeat = session.query(Repeat).filter_by(
-                    command_name=args[2]).first()
-                if repeat is not None:
-                    self.repeats[args[2]].stop()
-                    del self.repeats[args[2]]
-                    session.delete(repeat)
-                    session.commit()
-                    return "Removed repeat for command !{}.".format(args[2])
-                return "Repeat for !{} does not exist!".format(args[2])
-            return "Not enough arguments!"
-        elif args[1] == "list":
-            repeats = session.query(Repeat).all()
-            return "Repeats: {repeats}".format(
-                repeats=', '.join(
-                    [r.command.command+' '+str(r.interval) for r in repeats]
+                        periodic_callback = PeriodicCallback(
+                            partial(self.send, repeat),
+                            interval * 1000
+                        )
+                        self.repeats[args[3]] = periodic_callback
+                        periodic_callback.start()
+                        session.add(repeat)
+                        session.commit()
+                        return "Repeating '!{}' every {} seconds.".format(
+                            command.command, interval)
+                    return "Undefined command '!{}'.".format(args[3])
+                return "Not enough arguments!"
+            elif args[1] == "remove":
+                if len(args) > 2:
+                    repeat = session.query(Repeat).filter_by(
+                        command_name=args[2]).first()
+                    if repeat is not None:
+                        self.repeats[args[2]].stop()
+                        del self.repeats[args[2]]
+                        session.delete(repeat)
+                        session.commit()
+                        return "Removed repeat for !{}.".format(args[2])
+                    return "Repeat for !{} does not exist!".format(args[2])
+                return "Not enough arguments!"
+            elif args[1] == "list":
+                repeats = session.query(Repeat).all()
+                return "Repeats: {repeats}".format(
+                    repeats=', '.join(tuple(
+                        r.command.command+' '+str(r.interval) for r in repeats
+                    ))
                 )
-            )
-        return "Invalid argument: {}.".format(args[1])
+            return "Invalid argument: {}.".format(args[1])
+        return "Not enough arguments!"
 
     def send(self, repeat):
         try:
@@ -451,9 +475,18 @@ class FriendCommand(Command):
 
     @mod_only
     def __call__(self, args, data):
-        if len(args) == 2:
-            id = self.get_channel(args[1])["user"]["id"]
-            query = session.query(User).filter_by(id=id).first()
+        if len(args) < 2:
+            return "Not enough arguments."
+        elif len(args) == 2:
+            match = re.match(r'@?([A-Za-z0-9]{,32})', args[1])
+            if match is None:
+                return "Invalid username '{}'.".format(args[1])
+
+            id = self.get_channel(args[1])
+            if id.get("statusCode") == 404:
+                return "User has not entered this channel."
+
+            query = session.query(User).filter_by(id=id["user"]["id"]).first()
             if query:
                 query.friend = not query.friend
                 session.commit()
@@ -463,8 +496,6 @@ class FriendCommand(Command):
                 return "User has not entered this channel."
         elif len(args) > 2:
             return "Too many arguments."
-        else:
-            return "Not enough arguments."
 
 
 class SpamProtCommand(Command):
@@ -475,7 +506,9 @@ class SpamProtCommand(Command):
 
     @mod_only
     def __call__(self, args, data=None):
-        if len(args) >= 3:
+        if len(args) < 3:
+            return "Not enough arguments!"
+        elif len(args) >= 3:
             if args[1] == "length":
                 if args[2].isdigit():
                     self.update_config(
