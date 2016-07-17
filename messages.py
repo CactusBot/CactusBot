@@ -1,13 +1,17 @@
+"""Handle all the messages."""
+
+import re
+
 from beam import Beam
 from models import (Command, User, session, CommandCommand, QuoteCommand,
                     CubeCommand, SocialCommand, UptimeCommand, PointsCommand,
                     TemmieCommand, FriendCommand, SpamProtCommand, ProCommand,
                     SubCommand, RepeatCommand)
 
-from re import findall
-
 
 class MessageHandler(Beam):
+    """Handle messages."""
+
     def __init__(self, *args, **kwargs):
         super(MessageHandler, self).__init__(*args, **kwargs)
         self.events = {
@@ -28,7 +32,7 @@ class MessageHandler(Beam):
                 self.send_message,
                 self.bot_data["username"],
                 self.channel_data["token"]),
-            "quote": QuoteCommand(),
+            "quote": QuoteCommand(self.http_session),
             "social": SocialCommand(self.get_channel),
             "uptime": UptimeCommand(self._request),
             "friend": FriendCommand(self.get_channel),
@@ -43,13 +47,7 @@ class MessageHandler(Beam):
     def handle(self, response):
         """Handle responses from a Beam websocket."""
 
-        if response is not None:
-            if "data" not in response:
-                self.logger.debug("Data key not in response!")
-                self.logger.debug("response:\n\t{}".format(response))
-                return None
-        else:
-            # response IS None, so it's nothing
+        if response is None or "data" not in response:
             return None
 
         data = response["data"]
@@ -68,15 +66,16 @@ class MessageHandler(Beam):
     def message_handler(self, data):
         """Handle chat message packets from Beam."""
 
-        parsed = ''.join([obj["text"] for obj in data["message"]["message"]])
-
+        parsed = ''.join(
+            [obj["text"] for obj in data["message"]["message"]]
+        )
         self.logger.info("{bot}{me}[{user}] {message}".format(
-            bot='$ ' if data["user_name"] == self.config["auth"]["username"]
-                else '',
+            bot='$ ' if data["user_name"] == self.config["auth"][
+                "username"] else '',
             me='*' if data["message"]["meta"].get("me") else '',
             user=data["user_name"] + " > " + self.config["auth"]["username"]
-                if data["message"]["meta"].get("whisper")
-                else data["user_name"],
+            if data["message"]["meta"].get(
+                    "whisper") else data["user_name"],
             message=parsed)
         )
 
@@ -118,11 +117,10 @@ class MessageHandler(Beam):
                 return self.send_message(
                     data["user_name"], "Please stop spamming emoticons.",
                     method="whisper")
-            elif (findall(("http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|"
-                           "[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"),
-                          parsed) and not
-                    self.config["spam_protection"].get(
-                        "allow_links", False)):
+            elif (re.findall((r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|"
+                              r"[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"),
+                             parsed) and not
+                  self.config["spam_protection"].get("allow_links", False)):
                 self.remove_message(data["channel"], data["id"])
                 user.offenses += 1
                 session.commit()
@@ -178,10 +176,15 @@ class MessageHandler(Beam):
         user = session.query(User).filter_by(id=data["id"]).first()
 
         if not user:
-            user = User(id=data["id"], joins=1)
-        else:
+            user = User(
+                id=data["id"],
+                joins=1
+            )
             session.add(user)
+        else:
             user.joins += 1
+            session.add(user)
+
         session.commit()
 
         self.logger.info("- {user} joined".format(
