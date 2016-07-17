@@ -14,7 +14,8 @@ from logging import StreamHandler, FileHandler, Formatter
 from functools import partial
 from json import dumps, loads
 
-from re import match, findall
+import re
+import time
 
 from models import User, session
 from datetime import datetime
@@ -151,6 +152,8 @@ class Beam:
     def authenticate(self, *args):
         """Authenticate session to a Beam chat through a websocket."""
 
+        backoff = 0
+
         future = args[-1]
         if future.exception() is None:
             self.websocket = future.result()
@@ -164,7 +167,12 @@ class Beam:
 
             self.read_chat(self.handle)
         else:
-            self.logger.error("There was an issue connecting. Trying again")
+            self.logger.error("There was an issue connecting.")
+            self.logger.error("Trying again in {} seconds.".format(backoff))
+
+            time.sleep(min(2**backoff, 60))
+            backoff += 1
+
             self.authenticate(*args)
 
     def send_message(self, *args, method="msg"):
@@ -187,7 +195,7 @@ class Beam:
 
         if method == "msg":
             for message in args:
-                for chunk in findall(r'.{1,250}', message):
+                for chunk in re.findall(r'.{1,250}', message):
                     message_packet = {
                         "type": "method",
                         "method": "msg",
@@ -334,7 +342,7 @@ class Beam:
     def parse_liveloading_message(self, message):
         """Parse a message received from the Beam liveloading websocket."""
 
-        sections = match(r"(\d+)(.+)?$", message).groups()
+        sections = re.match(r"(\d+)(.+)?$", message).groups()
 
         return {
             "code": sections[0],
