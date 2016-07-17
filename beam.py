@@ -1,4 +1,4 @@
-""" This file is all the Beam related stuff """
+"""Connects to Beam's chat and liveloading."""
 
 from tornado.websocket import websocket_connect
 from tornado.gen import coroutine
