@@ -448,11 +448,7 @@ class RepeatCommand(Command):
     def send(self, repeat):
         try:
             self.send_message(
-                repeat.command(
-                    repeat.arguments.split(),
-                    self.data,
-                    channel_name=self.channel
-                )[0]
+                repeat.command
             )
         except TypeError:
             command_name = repeat.command_name
