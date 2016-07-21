@@ -1,8 +1,8 @@
 # Requirements
 
-* Python 3.4+
-* `tornado` (>=4.3)
-* `sqlalchemy` (>=1.0)
+* [Python](https://www.python.org/) 3.4+
+* [`tornado`](https://www.tornadoweb.org/) (>=4.3)
+* [`sqlalchemy`](https://www.sqlalchemy.org/) (>=1.0)
 
 # Configuration
 
