@@ -279,7 +279,12 @@ class SocialCommand(Command):
         a = [arg.lower() for arg in args[1:]]
         if s:
             if not a:
-                return ', '.join(': '.join((k.title(), s[k])) for k in s)
+                try:
+                    del s["verified"]
+                except:
+                    pass
+                return (', '.join(": ".join((k.title(), s[k])) for k in s))
+                #  ', '.join(': '.join((k.title(), s[k])) for k in s)
             elif set(a).issubset(set(s).union({"beam"})):
                 s.update({"beam": "https://beam.pro/{}".format(name)})
                 return ', '.join(': '.join((k.title(), s[k])) for k in a)
