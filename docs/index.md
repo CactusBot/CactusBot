@@ -1,7 +1,5 @@
 # Welcome to the CactusBot documentation!
 This page contains information about syntax and usage techniques for CactusBot.
-## [Setup](setup.md)
-If you plan on setting up your own instance of CactusBot follow these instructions!
 
 ## [Commands](commands.md)
 Certain unique commands are included in every bot and are programmed with
@@ -10,6 +8,9 @@ more functionalities than a standard text response.
 ## [Targets](targets.md)
 Targets are snippets of text, enclosed by `%`s, that are dynamically
 replaced with corresponding values.
+
+## [Setup](setup.md)
+Instructions for running an instance of CactusBot.
 
 ## [Contributing](contributing.md)
 If you want to add some features, make sure to
