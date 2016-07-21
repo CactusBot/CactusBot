@@ -9,12 +9,12 @@
 Copy `data/config-template.json` to `data/config.json`, and open `data/config.json` with the editor of your choice. Navigate to the `auth` block, and enter the bot's Beam username and password.
 
 ```json
-...
+…
 "auth": {
     "username": "YourBotName",
     "password": "p455w0rd"
 },
-...
+…
 ```
 
 # Control
