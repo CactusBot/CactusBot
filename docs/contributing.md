@@ -27,22 +27,3 @@ These are the standards we follow here at CactusDev. We love getting features fr
 >
 > ### Basically everything else
 >   Just follow PEP8 for your code formatting & you'll be fine :)
-
-## Cactus Control Panel Directory Setup
-
-#### NOTE: Cactus-CP is not yet complete, so these instructions do not yet apply to anything
-
-If you're planning on hosting your own Cactus-CP, then you'll need to set up the directories in this manner:
-
->     + Root Cactus-CP Directory
->     |
->     +---+ CactusBot Instance (CactusBot-[ChannelName]) <-- Bot instance
->     |
->     +---+ app       <-- Cactus-CP Flask folder
->     |
->     +---+ data      <-- Cactus-CP Flask folder
-
-
-Each individual CactusBot instance must be named `CactusBot-CHANNELNAME`. That way git knows to ignore that folder and Cactus-CP knows where the bot
-
-This way Cactus-CP knows where all of the config files and individual databases are for each of the bot instances.
