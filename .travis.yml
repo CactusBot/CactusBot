@@ -10,5 +10,5 @@ branches:
 install:
   - pip install flake8
 before_script:
-  - "flake8 ."
+  - "flake8 cactus.py beam.py messages.py models.py"
 script: nosetests

@@ -195,7 +195,7 @@ class Beam:
 
         if method == "msg":
             for message in args:
-                for chunk in re.findall(r'.{1,250}', message):
+                for chunk in re.findall(r'.{1,500}', message):
                     message_packet = {
                         "type": "method",
                         "method": "msg",
