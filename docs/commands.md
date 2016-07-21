@@ -28,9 +28,9 @@ The `!command` command is used for manipulation of custom commands. It may only 
 >     [Innectic] !raid Matt
 >     [CactusBot] Let's go raid Matt! beam.pro/Matt
 
->     [Innectic] !command add $fancy Look how fancy I am! I'm a subscriber!  O:-)
+>     [Innectic] !command add $fancy Look how fancy I am! I'm a subscriber! O:-)
 >     [Xyntak] !fancy
->     [CactusBot] Look how fancy I am! I'm a subscriber!  O:-)
+>     [CactusBot] Look how fancy I am! I'm a subscriber! O:-)
 
 - To remove a command, use `!command remove <name>`.
 
@@ -54,7 +54,7 @@ The `!quote` command manages quotes. It may only be run by users of rank *Mod* o
 - To recall a specific quote based on numerical ID, use `!quote <id>`.
 
 >     [BreachBreachBreach] !quote 8
->     [CactusBot] "...*silence*..." -Stanley
+>     [CactusBot] "…*silence*…" -Stanley
 
 - To add a quote, use `!quote add <quote>`.
 
