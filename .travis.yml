@@ -9,11 +9,7 @@ branches:
 install:
   - pip install -r requirements.txt
   - pip install pylint
-  - pip install coveralls
 env:
   - PYLINTRC=.pylintrc
 script:
   - pylint run.py config.template.py cactusbot/
-  - coverage run --source=cactusbot run.py test
-after_success:
-  - coveralls
