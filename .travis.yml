@@ -8,8 +8,6 @@ branches:
     - //^rel-v.+$//
 install:
   - pip install -r requirements.txt
-  - pip install pylint
-env:
-  - PYLINTRC=.pylintrc
+  - pip install flake8
 script:
-  - pylint run.py config.template.py cactusbot/
+  - flake8 run.py config.template.py cactusbot/
