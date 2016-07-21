@@ -335,8 +335,8 @@ class UptimeCommand(Command):
                 match(
                     r"(.+)\.\d{6}",
                     str(datetime.utcnow() - datetime.strptime(
-                        response["since"][:-5], "%Y-%m-%dT%H:%M:%S")
-                       )).group(1))
+                        response["since"][:-5], "%Y-%m-%dT%H:%M:%S"))
+                    ).group(1))
         return "Channel is offline."
 
 
