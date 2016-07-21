@@ -1,4 +1,4 @@
- pfrom sqlalchemy import create_engine
+from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy.ext.declarative import declarative_base
