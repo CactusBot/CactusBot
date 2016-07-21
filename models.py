@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+ pfrom sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -78,7 +78,7 @@ class Command(Base):
 
             try:
                 response = sub(
-                    "%arg(\d+)%",
+                    r"%arg(\d+)%",
                     lambda match: args[int(match.group(1))],
                     response
                 )
@@ -291,27 +291,30 @@ class SocialCommand(Command):
 class CubeCommand(Command):
 
     def __call__(self, args, data=None, **kwargs):
-        if args[1] == '2' and len(args) == 2:
-            return "8! Whoa, that's 2Cubed!"
+        if args >= 2:
+            if args[1] == '2' and len(args) == 2:
+                return "8! Whoa, that's 2Cubed!"
 
-        numbers = findall(
-            "( [0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)",
-            ' ' + ' '.join(args[1:]) + ' '
-        )
-
-        if len(numbers) == 0:
-            return "{w[0]}{response}{w[1]}³".format(
-                response=' '.join(args[1:]),
-                w='  ' if findall(":\w+$", ' '.join(args[1:])) else '()'
+            numbers = findall(
+                r"( [0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)",
+                ' ' + ' '.join(args[1:]) + ' '
             )
-        elif len(numbers) > 8:
-            return "Whoa! That's 2 many cubes!"
 
-        return sub(
-            "( [0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)",
-            lambda match: " {:g} ".format(float(match.groups()[0]) ** 3),
-            ' ' + ' '.join(args[1:]) + ' '
-        )
+            if len(numbers) == 0:
+                return "{w[0]}{response}{w[1]}³".format(
+                    response=' '.join(args[1:]),
+                    w='  ' if findall(r":\w+$", ' '.join(args[1:])) else '()'
+                )
+            elif len(numbers) > 8:
+                return "Whoa! That's 2 many cubes!"
+
+            return sub(
+                r"( [0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)",
+                lambda match: " {:g} ".format(float(match.groups()[0]) ** 3),
+                ' ' + ' '.join(args[1:]) + ' '
+            )
+        else:
+            return "Usage: !cube [number]"
 
 
 class UptimeCommand(Command):
@@ -326,10 +329,10 @@ class UptimeCommand(Command):
         if response.get("since") is not None:
             return "Channel has been live for {}.".format(
                 match(
-                    "(.+)\.\d{6}",
+                    r"(.+)\.\d{6}",
                     str(datetime.utcnow() - datetime.strptime(
                         response["since"][:-5], "%Y-%m-%dT%H:%M:%S")
-                        )).group(1))
+                       )).group(1))
         return "Channel is offline."
 
 
@@ -360,12 +363,12 @@ class RepeatCommand(Command):
         self.repeats = dict()
 
         for repeat in session.query(Repeat).all():
-            periodic_callback = PeriodicCallback(
+            repeat_callback = PeriodicCallback(
                 partial(self.send, repeat),
                 repeat.interval * 1000
             )
-            self.repeats[repeat.command.command] = periodic_callback
-            periodic_callback.start()
+            self.repeats[repeat.command.command] = repeat_callback
+            repeat_callback.start()
 
     @mod_only
     def __call__(self, args, data):
@@ -392,7 +395,7 @@ class RepeatCommand(Command):
                         return "Repeat updated."
 
                     command = session.query(Command).filter_by(command=args[3])
-                    if command.first():
+                    if command:
                         command = command.first()
                         repeat = Repeat(
                             command_object=command,
@@ -400,14 +403,17 @@ class RepeatCommand(Command):
                             arguments=' '.join(args[3:])
                         )
 
-                        periodic_callback = PeriodicCallback(
+                        repeat_callback = PeriodicCallback(
                             partial(self.send, repeat),
                             interval * 1000
                         )
-                        self.repeats[args[3]] = periodic_callback
-                        periodic_callback.start()
+                        self.repeats[args[3]] = repeat_callback
+
                         session.add(repeat)
                         session.commit()
+
+                        repeat_callback.start()
+
                         return "Repeating '!{}' every {} seconds.".format(
                             command.command, interval)
                     return "Undefined command '!{}'.".format(args[3])
@@ -446,7 +452,9 @@ class RepeatCommand(Command):
         except TypeError:
             command_name = repeat.command_name
             self.repeats[command_name].stop()
+
             del self.repeats[command_name]
+
             session.delete(repeat)
             session.commit()
 
