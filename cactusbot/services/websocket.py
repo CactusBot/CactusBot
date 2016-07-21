@@ -68,7 +68,6 @@ class WebSocket(ClientSession):
                 self.logger.warning("Connection lost. Reconnecting.")
                 await self.connect()
 
-
     async def initialize(self):
         """Run initialization procedure."""
         pass
