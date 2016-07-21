@@ -1,0 +1,13 @@
+[MESSAGES CONTROL]
+
+disable=oct-method,metaclass-assignment,execfile-builtin,indexing-exception,unpacking-in-except,unicode-builtin,setslice-method,buffer-builtin,long-builtin,unichr-builtin,delslice-method,xrange-builtin,suppressed-message,useless-suppression,coerce-builtin,getslice-method,old-division,old-octal-literal,next-method-called,basestring-builtin,using-cmp-argument,map-builtin-not-iterating,old-raise-syntax,hex-method,print-statement,long-suffix,reduce-builtin,coerce-method,dict-iter-method,no-absolute-import,reload-builtin,nonzero-method,filter-builtin-not-iterating,dict-view-method,standarderror-builtin,zip-builtin-not-iterating,intern-builtin,cmp-builtin,import-star-module-level,raw_input-builtin,raising-string,old-ne-operator,input-builtin,file-builtin,cmp-method,apply-builtin,round-builtin,range-builtin-not-iterating,backtick,parameter-unpacking,arguments-differ
+
+
+[MISCELLANEOUS]
+
+notes=FIXME,TODO,CHANGED,XXX,IDEA,HACK,NOTE,REVIEW
+
+
+[FORMAT]
+
+max-line-length=79
