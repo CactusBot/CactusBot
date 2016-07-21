@@ -1,41 +1,33 @@
-# Prerequisites
+# Requirements
 
 * Python 3.4+
-* Pip for Python 3.4+
-* Git
+* `tornado` (>=4.3)
+* `sqlalchemy` (>=1.0)
 
-# Linux
+# Configuration
 
-#### Installing Dependencies
-You need Git.
-Debian-Based: `sudo apt-get install git-core`
-
-RHel-Based: `sudo yum install git-core`
-
-Gentoo: `sudo emerge --ask dev-vcs/git`
-
-Arch: `sudo pacman -i git`
-
-Suse: `sudo zypper addrepo http://download.opensuse.org/repositories/devel:/tools:/scm/SLE_11_SP2/devel:tools:scm.repo && sudo zypper install git-core`
-
-There's only two dependencies needed for CactusBot. To install them, open a terminal, and type `pip3 install tornado sqlalchemy`.
-
-#### Configuring the Bot
-To configure the bot, first run the bot with `python3 cactus.py`. This will create a base config, and close the bot. After doing that, open `config.json` with the editor of your choice. Find `auth` section. Enter the bot's username and password as shown below:
+Copy `data/config-template.json` to `data/config.json`, and open `data/config.json` with the editor of your choice. Navigate to the `auth` block, and enter the bot's Beam username and password.
 
 ```json
 ...
-auth: {
-    "username": "myamazingname",
-    "password": "mappafishf1sh"
+"auth": {
+    "username": "YourBotName",
+    "password": "p455w0rd"
 },
 ...
 ```
 
-After doing that, you can run the bot with `python3 cactus.py`.
+# Control
 
-# Windows
-## TODO
+## Bot Activation
 
-# Thanks
+To run CactusBot, execute `cactus.py`. The following optional arguments will alter the behavior.
+- `--debug` will display logger output of level `DEBUG`. Other levels may be passed to force alternate minimum levels.
+- `--quiet` will ensure no messages are sent to Beam chat. The output will be displayed in console, however, as if the messages were sent.
+
+## Bot Deactivation
+
+To deactivate CactusBot, simply send a `KeyboardInterrupt` to the script (typically done through `Ctrl-C`).
+
+# Thanks!
 Thanks for choosing CactusBot. May the potato powered cookies be forever in your favor.
