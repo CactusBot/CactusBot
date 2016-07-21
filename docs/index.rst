@@ -39,3 +39,13 @@ You actually read this far? Sweet! Send us a Tweet including `potato waffles`
 for a free... uh... highfive? Hug? Cookie? Hamster.
 
 ![cactus.png](cactus.png)
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+
+   self
+   setup
+   commands
+   targets
+   standards
