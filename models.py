@@ -349,7 +349,8 @@ class PointsCommand(Command):
         return "@{user} has {amount} {name}.".format(
             user=data["user_name"],
             amount=user.points,
-            name=self.points_name + ('s' if user.points != 1 else ''))
+            name=self.points_name + (
+                's' if user.points > 1 or user.points == 0 else ''))
 
 
 class RepeatCommand(Command):
@@ -447,7 +448,7 @@ class RepeatCommand(Command):
                     repeat.arguments.split(),
                     self.data,
                     channel_name=self.channel
-                )
+                )[0]
             )
         except TypeError:
             command_name = repeat.command_name
