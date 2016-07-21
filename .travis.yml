@@ -5,10 +5,10 @@ branches:
   only:
     - master
     - develop
-    - refactor
-    - //^release-v.+$//
+    - /^release-v(\d+.){0,2}\d+$/
 install:
   - pip install -r requirements.txt
   - pip install flake8
 script:
   - flake8 run.py config.template.py cactusbot/
+  - nosetests
