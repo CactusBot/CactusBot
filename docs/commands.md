@@ -4,7 +4,7 @@ The `!command` command is used for manipulation of custom commands. It may only 
 - To add a command, use `!command add <command> <response>`.
     - [`%targets%`](/targets) may also be utilized to enable dynamic responses.
     - If `<command>` is of the form `x-y`, it may be run later as either `!x-y` and `!x y`.
-    - To limit the users who may run the command, prepend the command with one of the following characters.
+    - To limit the users who may run the command, append one of the prefixes to the beginning of the name.
         - `+` - Moderator-Only
         - `$` - Subscriber-Only
 
@@ -15,10 +15,10 @@ The `!command` command is used for manipulation of custom commands. It may only 
 
 >     [2Cubed] !command add cactusbot-twitter twitter.com/CactusBotBeam
 >     [CactusBot] Added command !cactusbot-twitter.
->     [2Cubed] !cactusbot-twitter
+>     [ParadigmShift3d] !cactusbot-twitter
 >     [CactusBot] twitter.com/CactusBotBeam
 
->     [2Cubed] !cactusbot twitter
+>     [Jello] !cactusbot twitter
 >     [CactusBot] twitter.com/CactusBotBeam
 
 >     [2Cubed] !cactusbot
@@ -29,18 +29,18 @@ The `!command` command is used for manipulation of custom commands. It may only 
 >     [CactusBot] Let's go raid Matt! beam.pro/Matt
 
 >     [Innectic] !command add $fancy Look how fancy I am! I'm a subscriber!  O:-)
->     [ParadigmShift3d] !fancy
+>     [Xyntak] !fancy
 >     [CactusBot] Look how fancy I am! I'm a subscriber!  O:-)
 
 - To remove a command, use `!command remove <name>`.
 
->     [Innectic] !command remove waffle
+>     [2Cubed] !command remove waffle
 >     [CactusBot] Removed command !waffle.
 >     [Innectic] Oh no, my waffles! /cry
 
 - To list custom commands, use `!command list`.
 
->     [2Cubed] !command list
+>     [ParadigmShift3d] !command list
 >     [CactusBot] Commands: potato, waffle, hamster
 
 ## `!quote`
@@ -53,12 +53,12 @@ The `!quote` command manages quotes. It may only be run by users of rank *Mod* o
 
 - To recall a specific quote based on numerical ID, use `!quote <id>`.
 
->     [2Cubed] !quote 8
+>     [BreachBreachBreach] !quote 8
 >     [CactusBot] "...*silence*..." -Stanley
 
 - To add a quote, use `!quote add <quote>`.
 
->     [Innectic] !quote add "Potatoes!" -2Cubed
+>     [Innectic] !quote add "Potatoes!" - 2Cubed
 >     [CactusBot] Added quote with ID 9.
 
 - To remove a quote, use `!quote remove <id>`.
@@ -84,7 +84,7 @@ The `!repeat` command manages commands that are set to run at a certain interval
 
 - To list all repeats, use `!repeat list`.
 
->     [2Cubed] !repeat list
+>     [ParadigmShift3d] !repeat list
 >     [CactusBot] Repeats: follow 3600, tweet 1800
 
 
@@ -93,12 +93,12 @@ The `!social` command retrieves social media data from the Beam API.
 
 - To retrieve links for all services, use `!social`.
 
->     [2Cubed] !social
+>     [ParadigmShift3d] !social
 >     [CactusBot] Youtube: https://youtube.com/2CubedTech, Twitter: https://twitter.com/2CubedTech
 
 - To retrieve links for specific services, use `!social <services>`, where `<services>` is a space-delimited list of services.
 
->     [Innectic] !social twitter
+>     [Alkali_Metal] !social twitter
 >     [CactusBot] Twitter: https://twitter.com/CactusBotBeam
 
 
@@ -119,7 +119,7 @@ The `!spamprot` command changes spam protection options. It may only be run by u
 
 >     [Innectic] !spamprot emotes 4
 >     [CactusBot] Maximum emotes per message set to 4.
->     [Innectic] :beer :mappa <3 :cactus
+>     [duke] :beer :mappa <3 :cactus
 
 - To enable or disable links in messages, use `!spamprot links <value>`, where `<value>` is either `true` or `false`. The default is `false`.
 
