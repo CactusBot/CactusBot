@@ -284,7 +284,6 @@ class SocialCommand(Command):
                 except:
                     pass
                 return (', '.join(": ".join((k.title(), s[k])) for k in s))
-                #  ', '.join(': '.join((k.title(), s[k])) for k in s)
             elif set(a).issubset(set(s).union({"beam"})):
                 s.update({"beam": "https://beam.pro/{}".format(name)})
                 return ', '.join(': '.join((k.title(), s[k])) for k in a)
