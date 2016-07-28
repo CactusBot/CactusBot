@@ -22,12 +22,14 @@ from datetime import datetime
 
 
 class Beam:
-    path = "https://beam.pro/api/v1/"
-
-    message_id = 0
+    PATH = "https://beam.pro/api/v1/"
 
     def __init__(self, debug="INFO", **kwargs):
         self._init_logger(debug, kwargs.get("log_to_file", True))
+
+        self.message_id = 0
+        self.csrf_token = None
+
         self.http_session = Session()
 
     def _init_logger(self, level="INFO", file_logging=True, **kwargs):
@@ -94,7 +96,15 @@ class Beam:
     def _request(self, url, method="GET", **kwargs):
         """Send HTTP request to Beam."""
         response = self.http_session.request(
-            method, urljoin(self.path, url.lstrip('/')), **kwargs)
+            method,
+            urljoin(self.PATH, url.lstrip('/')),
+            headers={"X-CSRF-Token": self.csrf_token},
+            **kwargs
+        )
+
+        if self.csrf_token is None:
+            self.csrf_token = response.headers.get("X-CSRF-Token")
+
         try:
             return response.json()
         except Exception:
