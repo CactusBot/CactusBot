@@ -231,10 +231,9 @@ class Beam:
                     user=args[0],
                     message=args[1]))
 
-    def remove_message(self, channel_id, message_id):
+    def remove_message(self, message_id):
         """Remove a message from chat."""
-        return self._request("/chats/{id}/message/{message}".format(
-            id=channel_id, message=message_id), method="DELETE")
+        return self.send_message(message_id, method="deleteMessage")
 
     @coroutine
     def read_chat(self, handler=None):
