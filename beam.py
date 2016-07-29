@@ -416,5 +416,5 @@ class Beam:
                         self.logger.info("- {} hosted the channel.".format(
                             packet["data"][1]["hoster"]["token"]))
                         self.send_message(
-                            "Thanks for the hosting the channel, @{}!".format(
+                            "Thanks for hosting the channel, @{}!".format(
                                 packet["data"][1]["hoster"]["token"]))
