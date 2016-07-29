@@ -446,11 +446,17 @@ class RepeatCommand(Command):
         return "Not enough arguments!"
 
     def send(self, repeat):
+        print(repeat.command)
         try:
             self.send_message(
-                repeat.command
+                repeat.command(
+                    repeat.arguments.split(),
+                    self.data,
+                    channel_name=self.channel
+                )[0]
             )
         except TypeError:
+            print("boop")
             command_name = repeat.command_name
             self.repeats[command_name].stop()
 
