@@ -92,7 +92,7 @@ class MessageHandler(Beam):
         if not (data["user_roles"][0] in mod_roles or user.friend):
             if (len(parsed) > self.config["spam_protection"].get(
                     "maximum_message_length", 256)):
-                self.remove_message(data["channel"], data["id"])
+                self.remove_message(data["id"])
                 user.offenses += 1
                 session.commit()
                 return self.send_message(
@@ -101,7 +101,7 @@ class MessageHandler(Beam):
             elif (sum(char.isupper() for char in parsed) >
                     self.config["spam_protection"].get(
                         "maximum_message_capitals", 32)):
-                self.remove_message(data["channel"], data["id"])
+                self.remove_message(data["id"])
                 user.offenses += 1
                 session.commit()
                 return self.send_message(
@@ -111,7 +111,7 @@ class MessageHandler(Beam):
                       for chunk in data["message"]["message"]) >
                     self.config["spam_protection"].get(
                     "maximum_message_emotes", 8)):
-                self.remove_message(data["channel"], data["id"])
+                self.remove_message(data["id"])
                 user.offenses += 1
                 session.commit()
                 return self.send_message(
@@ -121,7 +121,7 @@ class MessageHandler(Beam):
                               r"[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"),
                              parsed) and not
                   self.config["spam_protection"].get("allow_links", False)):
-                self.remove_message(data["channel"], data["id"])
+                self.remove_message(data["id"])
                 user.offenses += 1
                 session.commit()
                 return self.send_message(
@@ -129,7 +129,7 @@ class MessageHandler(Beam):
                     method="whisper")
 
         if parsed == "/cry":
-            self.remove_message(data["channel"], data["id"])
+            self.remove_message(data["id"])
             return self.send_message("/me cries with {} :'(".format(
                 data["user_name"]))
 

@@ -22,12 +22,14 @@ from datetime import datetime
 
 
 class Beam:
-    path = "https://beam.pro/api/v1/"
-
-    message_id = 0
+    PATH = "https://beam.pro/api/v1/"
 
     def __init__(self, debug="INFO", **kwargs):
         self._init_logger(debug, kwargs.get("log_to_file", True))
+
+        self.message_id = 0
+        self.csrf_token = None
+
         self.http_session = Session()
 
     def _init_logger(self, level="INFO", file_logging=True, **kwargs):
@@ -94,7 +96,18 @@ class Beam:
     def _request(self, url, method="GET", **kwargs):
         """Send HTTP request to Beam."""
         response = self.http_session.request(
-            method, urljoin(self.path, url.lstrip('/')), **kwargs)
+            method,
+            urljoin(self.PATH, url.lstrip('/')),
+            headers={"X-CSRF-Token": self.csrf_token},
+            **kwargs
+        )
+
+        if self.csrf_token is None:
+            self.csrf_token = response.headers.get("X-CSRF-Token")
+        elif response.status_code == 461:
+            self.csrf_token = response.headers.get("X-CSRF-Token")
+            self._request(url, method, **kwargs)
+
         try:
             return response.json()
         except Exception:
@@ -221,10 +234,9 @@ class Beam:
                     user=args[0],
                     message=args[1]))
 
-    def remove_message(self, channel_id, message_id):
+    def remove_message(self, message_id):
         """Remove a message from chat."""
-        return self._request("/chats/{id}/message/{message}".format(
-            id=channel_id, message=message_id), method="DELETE")
+        return self.send_message(message_id, method="deleteMessage")
 
     @coroutine
     def read_chat(self, handler=None):
@@ -407,5 +419,5 @@ class Beam:
                         self.logger.info("- {} hosted the channel.".format(
                             packet["data"][1]["hoster"]["token"]))
                         self.send_message(
-                            "Thanks for the hosting the channel, @{}!".format(
+                            "Thanks for hosting the channel, @{}!".format(
                                 packet["data"][1]["hoster"]["token"]))

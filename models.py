@@ -295,7 +295,7 @@ class SocialCommand(Command):
 class CubeCommand(Command):
 
     def __call__(self, args, data=None, **kwargs):
-        if args >= 2:
+        if len(args) >= 2:
             if args[1] == '2' and len(args) == 2:
                 return "8! Whoa, that's 2Cubed!"
 
@@ -448,7 +448,11 @@ class RepeatCommand(Command):
     def send(self, repeat):
         try:
             self.send_message(
-                repeat.command
+                repeat.command(
+                    repeat.arguments.split(),
+                    self.data,
+                    channel_name=self.channel
+                )[0]
             )
         except TypeError:
             command_name = repeat.command_name
