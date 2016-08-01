@@ -104,6 +104,9 @@ class Beam:
 
         if self.csrf_token is None:
             self.csrf_token = response.headers.get("X-CSRF-Token")
+        elif response.status_code == 461:
+            self.csrf_token = response.headers.get("X-CSRF-Token")
+            self._request(url, method, **kwargs)
 
         try:
             return response.json()
