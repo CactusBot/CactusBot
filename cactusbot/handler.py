@@ -20,16 +20,19 @@ class Handler(object):
 
         self.logger = getLogger(__name__)
 
-        api = CactusAPI(None)  # FIXME: pass correct user
+        self.cactus_api = CactusAPI("Innectic")  # FIXME: Use current channel
+        self.inject = COMMANDS[0].inject  # HACK
 
         self.commands = {  # TODO: make configurable
             "cactus": "Ohai! I'm CactusBot. :cactus",
             "test": "Test confirmed. :cactus",
-            "help": "Check out my documentation at cactusbot.readthedocs.org."
+            "help": "Check out my documentation at cactusbot.rtfd.org."
         }
 
         self.commands.update(
-            dict((command.COMMAND, command(api)) for command in COMMANDS)
+            dict((
+                command.COMMAND, command(
+                    self.cactus_api)) for command in COMMANDS)
         )
 
     async def send(self, *args, **kwargs):
@@ -40,6 +43,7 @@ class Handler(object):
         """Handle message events."""
 
         message = message.strip()
+        response = ""
 
         self.logger.info("[%s] %s", user, message)
 
@@ -59,11 +63,15 @@ class Handler(object):
                         code = b32encode(uuid4().bytes).decode()[:12]
                         self.logger.exception("Exception. Code: %s.", code)
                         return ("An error occured. Please send code {} to "
-                                "CactusDev.").format(code)  # FIXME: dynamic
+                                "CactusDev.").format(code)  # FIXME: Sentry
             else:
-                response = "Command not found."
+                command = await self.cactus_api.get_command(command)
+                if command.get("data").get("attributes"):
+                    response = command.get(
+                        "data").get("attributes").get("response")
 
-            return response
+            return await self.inject(
+                response, channel=getattr(self, "channel", "%CHANNEL%"))
 
         # TODO: spam protection
 
