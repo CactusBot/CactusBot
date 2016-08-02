@@ -20,7 +20,7 @@ class Handler(object):
 
         self.logger = getLogger(__name__)
 
-        self.cactus_api = CactusAPI("Innectic")  # FIXME: Needs to use current channel
+        self.cactus_api = CactusAPI("Innectic")  # FIXME: Use current channel
         self.inject = COMMANDS[0].inject  # HACK
 
         self.commands = {  # TODO: make configurable
@@ -30,7 +30,9 @@ class Handler(object):
         }
 
         self.commands.update(
-            dict((command.COMMAND, command(self.cactus_api)) for command in COMMANDS)
+            dict((
+                command.COMMAND, command(
+                    self.cactus_api)) for command in COMMANDS)
         )
 
     async def send(self, *args, **kwargs):

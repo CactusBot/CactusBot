@@ -26,9 +26,9 @@ class Meta(Command):
             added_by=added_by
         )
 
-        if response["meta"]["created"] == True:
+        if response["meta"]["created"] is True:
             return "Added command !{}.".format(name[1])
-        elif response[0]["meta"]["updated"] == True:
+        elif response[0]["meta"]["updated"] is True:
             return "Updated command !{}.".format(name[1])
         raise Exception
 
