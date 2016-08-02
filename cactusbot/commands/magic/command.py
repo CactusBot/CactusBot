@@ -47,6 +47,8 @@ class Meta(Command):
 
         if commands:
             return "Commands: {}.".format(
-                ', '.join(command["data"]["attributes"]["name"] for command in commands)
+                ', '.join(
+                    command["data"]["attributes"]["name"]
+                        for command in commands)
             )
         return "No commands added."
