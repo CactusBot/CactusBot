@@ -26,10 +26,9 @@ class Meta(Command):
             added_by=added_by
         )
 
-        # FIXME
-        if response.status == 201:
+        if response["meta"]["created"] == True:
             return "Added command !{}.".format(name[1])
-        if response.status == 202:
+        elif response[0]["meta"]["updated"] == True:
             return "Updated command !{}.".format(name[1])
         raise Exception
 
@@ -45,8 +44,9 @@ class Meta(Command):
     async def list(self):
         """List all custom commands."""
         commands = await self.api.get_command()
+
         if commands:
             return "Commands: {}.".format(
-                ', '.join(command["name"] for command in commands)
+                ', '.join(command["data"]["attributes"]["name"] for command in commands)
             )
         return "No commands added."

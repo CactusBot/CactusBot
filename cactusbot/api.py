@@ -6,7 +6,7 @@ from .services.api import API
 class CactusAPI(API):
     """Interact with CactusAPI."""
 
-    URL = "http://107.170.60.137/api/v1/"
+    URL = "http://localhost:8000/api/v1/"
 
     def __init__(self, user, **kwargs):
         super().__init__(**kwargs)
@@ -18,8 +18,7 @@ class CactusAPI(API):
                           added_by=None):
         """Add a command."""
         data = {
-            "response": response,
-            "addedBy": added_by
+            "response": response
         }
         return await self.patch("/user/{user}/command/{command}".format(
             user=self.user, command=name), data=data)
