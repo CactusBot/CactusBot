@@ -22,7 +22,8 @@ class BeamHandler(Handler):
 
         self.api = BeamAPI()
 
-        self.channel = channel
+        self._channel = channel
+        self.channel = ""
 
         self.chat = None
         self.liveloading = None
@@ -42,7 +43,9 @@ class BeamHandler(Handler):
 
     async def run(self, *auth):
         """Connect to Beam chat and handle incoming packets."""
-        channel = await self.api.get_channel(self.channel)
+        channel = await self.api.get_channel(self._channel)
+        self.channel = str(channel["id"])
+        self.api.channel = self.channel  # HACK
 
         user = await self.api.login(*auth)
         chat = await self.api.get_chat(channel["id"])
