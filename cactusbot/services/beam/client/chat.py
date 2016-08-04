@@ -63,7 +63,7 @@ class BeamChat(WebSocket):
                 self.logger.error(packet)
             else:
                 self.logger.debug(packet)
-                
+
             if packet.get("type") == "event":
                 return packet.get("event"), packet.get("data")
             else:
