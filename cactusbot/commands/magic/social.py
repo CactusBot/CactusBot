@@ -22,9 +22,22 @@ class Social(Command):
 
         social_data = social_data["user"]["social"]
 
+        if not social_data:
+            return "No social services found on this streamer's profile."
+
         if not args:
-            return str(channel)
+            if "verified" in social_data:
+                print("social")
+                del social_data["verified"]
+            return ', '.join('{}: {}'.format(service.title(), url) for service, url in social_data.items())
         else:
-            return "FAKE POTATO"
+            selected = set(map(str.lower, args))
+            available = set(social_data.keys())
+
+            if selected.issubset(available):
+                return ', '.join('{}: {}'.format(service.title(), social_data[service]) for service in selected)
+            return "The service{s} {services} don't exist.".format(
+                services=', '.join(selected.difference(available)), s='s' if len(selected.difference(available) > 1) else '')
+
 
     DEFAULT = get
