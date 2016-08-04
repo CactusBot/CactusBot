@@ -20,12 +20,8 @@ class Handler(object):
 
         self.logger = getLogger(__name__)
 
-<<<<<<< HEAD
         self.cactus_api = CactusAPI("Innectic")  # FIXME: Use current channel
         self.inject = COMMANDS[0].inject  # HACK
-=======
-        api = CactusAPI(None)  # FIXME: pass correct channel
->>>>>>> 58d0801fb6d51d9dfd3a7a90c9c55062c5aa675e
 
         self.commands = {  # TODO: make configurable
             "cactus": "Ohai! I'm CactusBot. :cactus",
