@@ -6,7 +6,7 @@ from .services.api import API
 class CactusAPI(API):
     """Interact with CactusAPI."""
 
-    URL = "http://107.170.60.137/api/v1/"
+    URL = "http://localhost:8000/api/v1/"
 
     def __init__(self, user, **kwargs):
         super().__init__(**kwargs)
@@ -19,7 +19,6 @@ class CactusAPI(API):
         """Add a command."""
         data = {
             "response": response,
-            "addedBy": added_by
         }
         return await self.patch("/user/{user}/command/{command}".format(
             user=self.user, command=name), data=data)
@@ -33,7 +32,6 @@ class CactusAPI(API):
         return await self.delete("/user/{user}/command/{command}".format(
             user=self.user, command=name), data=data)
 
-    # FIXME: match API
     async def get_command(self, name=None):
         """Get a command."""
         if name is not None:
@@ -41,12 +39,10 @@ class CactusAPI(API):
                 user=self.user, command=name))
         return await self.get("/user/{user}/command".format(user=self.user))
 
-    # TODO: implement
     async def add_quote(self, quote, *, added_by=None):
         """Add a quote."""
         return "In development."
 
-    # TODO: implement
     async def remove_quote(self, quote_id):
         """Remove a quote."""
         return "In development."

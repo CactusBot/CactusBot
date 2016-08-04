@@ -30,7 +30,8 @@ class API(ClientSession):
                 self.logger.error(error)
                 raise ClientHttpProcessingError(error)
             try:
-                return await response.json()
+                response = await response.json()
+                return response
             except ValueError:
                 self.logger.warning("Response was not JSON!")
                 raise ClientHttpProcessingError("Response was not JSON!")
