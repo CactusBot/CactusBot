@@ -20,7 +20,7 @@ class Handler(object):
 
         self.logger = getLogger(__name__)
 
-        api = CactusAPI(None)  # FIXME: pass correct user
+        api = CactusAPI(None)  # FIXME: pass correct channel
 
         self.commands = {  # TODO: make configurable
             "cactus": "Ohai! I'm CactusBot. :cactus",
@@ -53,7 +53,8 @@ class Handler(object):
                     try:
                         response = await response(
                             *args,
-                            username=user
+                            username=user,
+                            channel=getattr(self, "channel", "%CHANNEL%")
                         )
                     except Exception:
                         code = b32encode(uuid4().bytes).decode()[:12]
