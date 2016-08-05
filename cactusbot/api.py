@@ -13,7 +13,6 @@ class CactusAPI(API):
 
         self.channel = channel
 
-    # FIXME: match API
     async def add_command(self, name, response, *, permissions={},
                           added_by=None):
         """Add a command."""
@@ -23,7 +22,6 @@ class CactusAPI(API):
         return await self.patch("/channel/{channel}/command/{command}".format(
             channel=self.channel, command=name), data=data)
 
-    # FIXME" match API
     async def remove_command(self, name, *, removed_by=None):
         """Remove a command."""
         data = {
@@ -48,3 +46,21 @@ class CactusAPI(API):
     async def remove_quote(self, quote_id):
         """Remove a quote."""
         return "In development."
+
+    async def get_friend(self, name=None):
+        """Get a list of friends."""
+        if name is None:
+            return await self.get("/channel/{channel}/friend")
+
+        return await self.get("/channel/{channel}/friend/{name}".format(
+            channel=self.channel, name=name))
+
+    async def add_friend(self, username):
+        """Add a friend."""
+        return await self.patch("/channel/{channel}/friend/{name}".format(
+            channel=self.channel, name=username))
+
+    async def remove_friend(self, username):
+        """Remove a friend."""
+        return await self.delete("/channel/{channel}/friend/{name}".format(
+            channel=self.channel, name=username))
