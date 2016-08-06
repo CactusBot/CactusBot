@@ -2,8 +2,8 @@
 
 from logging import getLogger
 
+import json
 import asyncio
-import re
 
 from .. import Handler
 
@@ -35,10 +35,8 @@ class BeamHandler(Handler):
         }
 
         self.liveloading_events = {
-            "channel": {
-                "followed": self.on_follow,
-                "subscribed": self.on_subscribe
-            }
+            "followed": self.on_follow,
+            "subscribed": self.on_subscribe
         }
 
     async def run(self, *auth):
@@ -79,17 +77,23 @@ class BeamHandler(Handler):
     async def handle_liveloading(self, packet):
         """Handle liveloading packets."""
 
+        packet = json.loads(packet)
+
         data = packet.get("data")
-        if not isinstance(data, list) or not isinstance(data[0], str):
+        if not isinstance(data, dict):
             return
 
-        event = re.match(self.liveloading.INTERFACE_EXPR, data[0])
+        event = data["channel"].split(":")[-1:][0]
+        data = data.get("payload")
+        if not isinstance(data, dict):
+            return
+
         if event is None:
             return
 
-        event = event.groups()
-        if event[1] in self.liveloading_events.get(event[0], {}):
-            await self.liveloading_events[event[0]][event[1]](data[1])
+        if data.get("user"):
+            if event in self.liveloading_events:
+                await self.liveloading_events[event](data)
 
     async def send(self, *args, **kwargs):
         """Send a packet to Beam."""
@@ -120,10 +124,10 @@ class BeamHandler(Handler):
             await self.send(await super().on_leave(data["username"]))
 
     async def on_follow(self, data):
-        """Handle follow packets from liveloading."""
+        """Handle follow packets from Constellation."""
         if data["following"]:
             await self.send(await super().on_follow(data["user"]["username"]))
 
     async def on_subscribe(self, data):
-        """Handle subscribe packets from liveloading."""
+        """Handle subscribe packets from Constellation."""
         await self.send(await super().on_subscribe(data["user"]["username"]))
