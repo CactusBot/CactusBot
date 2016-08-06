@@ -16,10 +16,12 @@ class CactusAPI(API):
     async def add_command(self, name, response, *, permissions={},
                           added_by=None):
         """Add a command."""
+
         data = {
             "response": response,
         }
-        return await self.patch("/channel/{channel}/command/{command}".format(
+
+        return await self.patch("/user/{channel}/command/{command}".format(
             channel=self.channel, command=name), data=data)
 
     async def remove_command(self, name, *, removed_by=None):
@@ -27,17 +29,17 @@ class CactusAPI(API):
         data = {
             "removedBy": removed_by
         }
-        return await self.delete("/channel/{channel}/command/{command}".format(
+        return await self.delete("/user/{channel}/command/{command}".format(
             channel=self.channel, command=name), data=data)
 
     async def get_command(self, name=None):
         """Get a command."""
         if name is not None:
             return await self.get(
-                "/channel/{channel}/command/{command}".format(
+                "/user/{channel}/command/{command}".format(
                     channel=self.channel, command=name))
         return await self.get(
-            "/channel/{channel}/command".format(channel=self.channel))
+            "/user/{channel}/command".format(channel=self.channel))
 
     async def add_quote(self, quote, *, added_by=None):
         """Add a quote."""

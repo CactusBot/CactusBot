@@ -21,14 +21,13 @@ class Meta(Command):
 
         permissions = ','.join(self.permissions[symbol] for symbol in name[0])
 
-        response = await self.api.add_command(
+        data = await self.api.add_command(
             name[1], ' '.join(response), permissions=permissions,
             added_by=added_by
         )
-
-        if response[0].get("meta")["updated"]:
+        if data[0].get("meta")["updated"]:
             return "Updated command !{}.".format(name[1])
-        elif response[0].get("meta")["created"]:
+        elif data[0].get("meta")["created"]:
             return "Added command !{}.".format(name[1])
 
     @Command.subcommand
