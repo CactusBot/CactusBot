@@ -58,7 +58,7 @@ class BeamHandler(Handler):
             channel["id"], channel["user"]["id"]
         )
         await self.constellation.connect()
-        asyncio.ensure_future(self.constellation.read(self.handle_liveloading))
+        asyncio.ensure_future(self.constellation.read(self.handle_constellation))
 
     async def handle_chat(self, packet):
         """Handle chat packets."""
@@ -76,8 +76,8 @@ class BeamHandler(Handler):
             else:
                 self.logger.error("Chat authentication failure!")
 
-    async def handle_liveloading(self, packet):
-        """Handle liveloading packets."""
+    async def handle_constellation(self, packet):
+        """Handle Constellation packets."""
 
         packet = json.loads(packet)
 
