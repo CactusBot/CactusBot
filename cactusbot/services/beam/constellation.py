@@ -10,7 +10,7 @@ import asyncio
 from .. import WebSocket
 
 
-class BeamLiveloading(WebSocket):
+class BeamConstellation(WebSocket):
     """Interact with Beam liveloading."""
 
     URL = "wss://constellation.beam.pro"
