@@ -35,10 +35,8 @@ class BeamHandler(Handler):
         }
 
         self.constellation_events = {
-            "channel": {
-                "followed": self.on_follow,
-                "subscribed": self.on_subscribe
-            }
+            "followed": self.on_follow,
+            "subscribed": self.on_subscribe
         }
 
     async def run(self, *auth):
@@ -58,7 +56,8 @@ class BeamHandler(Handler):
             channel["id"], channel["user"]["id"]
         )
         await self.constellation.connect()
-        asyncio.ensure_future(self.constellation.read(self.handle_constellation))
+        asyncio.ensure_future(
+            self.constellation.read(self.handle_constellation))
 
     async def handle_chat(self, packet):
         """Handle chat packets."""
@@ -77,7 +76,7 @@ class BeamHandler(Handler):
                 self.logger.error("Chat authentication failure!")
 
     async def handle_constellation(self, packet):
-        """Handle Constellation packets."""
+        """Handle constellation packets."""
 
         packet = json.loads(packet)
 
@@ -85,7 +84,7 @@ class BeamHandler(Handler):
         if not isinstance(data, dict):
             return
 
-        event = data["channel"].split(":")[-1:]
+        event = data["channel"].split(":")[-1:][0]
         data = data.get("payload")
         if not isinstance(data, dict):
             return
