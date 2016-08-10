@@ -35,8 +35,10 @@ class BeamHandler(Handler):
         }
 
         self.constellation_events = {
-            "followed": self.on_follow,
-            "subscribed": self.on_subscribe
+            "channel": {
+                "followed": self.on_follow,
+                "subscribed": self.on_subscribe
+            }
         }
 
     async def run(self, *auth):
@@ -84,7 +86,7 @@ class BeamHandler(Handler):
         if not isinstance(data, dict):
             return
 
-        event = data["channel"].split(":")[-1:][0]
+        event = data["channel"].split(":")
         data = data.get("payload")
         if not isinstance(data, dict):
             return
@@ -93,8 +95,9 @@ class BeamHandler(Handler):
             return
 
         if data.get("user"):
-            if event in self.constellation_events:
-                await self.constellation_events[event](data)
+            if event[0] in self.constellation_events:
+                if event[2] in self.constellation_events[event[0]]:
+                    await self.constellation_events[event[0]][event[2]](data)
 
     async def send(self, *args, **kwargs):
         """Send a packet to Beam."""
