@@ -1,6 +1,5 @@
 """Manage friends."""
 
-
 from . import Command
 
 
