@@ -9,7 +9,7 @@ from .. import Handler
 
 from .api import BeamAPI
 from .chat import BeamChat
-from .liveloading import BeamLiveloading
+from .constellation import BeamConstellation
 
 
 class BeamHandler(Handler):
@@ -26,7 +26,7 @@ class BeamHandler(Handler):
         self.channel = ""
 
         self.chat = None
-        self.liveloading = None
+        self.constellation = None
 
         self.chat_events = {
             "ChatMessage": self.on_message,
@@ -34,9 +34,11 @@ class BeamHandler(Handler):
             "UserLeave": self.on_leave
         }
 
-        self.liveloading_events = {
-            "followed": self.on_follow,
-            "subscribed": self.on_subscribe
+        self.constellation_events = {
+            "channel": {
+                "followed": self.on_follow,
+                "subscribed": self.on_subscribe
+            }
         }
 
     async def run(self, *auth):
@@ -52,11 +54,12 @@ class BeamHandler(Handler):
         await self.chat.connect(user["id"], chat["authkey"])
         asyncio.ensure_future(self.chat.read(self.handle_chat))
 
-        self.liveloading = BeamLiveloading(
+        self.constellation = BeamConstellation(
             channel["id"], channel["user"]["id"]
         )
-        await self.liveloading.connect()
-        asyncio.ensure_future(self.liveloading.read(self.handle_liveloading))
+        await self.constellation.connect()
+        asyncio.ensure_future(
+            self.constellation.read(self.handle_constellation))
 
     async def handle_chat(self, packet):
         """Handle chat packets."""
@@ -74,8 +77,8 @@ class BeamHandler(Handler):
             else:
                 self.logger.error("Chat authentication failure!")
 
-    async def handle_liveloading(self, packet):
-        """Handle liveloading packets."""
+    async def handle_constellation(self, packet):
+        """Handle constellation packets."""
 
         packet = json.loads(packet)
 
@@ -83,7 +86,7 @@ class BeamHandler(Handler):
         if not isinstance(data, dict):
             return
 
-        event = data["channel"].split(":")[-1:][0]
+        event = data["channel"].split(":")
         data = data.get("payload")
         if not isinstance(data, dict):
             return
@@ -92,8 +95,9 @@ class BeamHandler(Handler):
             return
 
         if data.get("user"):
-            if event in self.liveloading_events:
-                await self.liveloading_events[event](data)
+            if event[0] in self.constellation_events:
+                if event[2] in self.constellation_events[event[0]]:
+                    await self.constellation_events[event[0]][event[2]](data)
 
     async def send(self, *args, **kwargs):
         """Send a packet to Beam."""

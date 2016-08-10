@@ -1,4 +1,4 @@
-"""Interact with Beam liveloading."""
+"""Interact with Beam Constellation."""
 
 from logging import getLogger
 
@@ -10,8 +10,8 @@ import asyncio
 from .. import WebSocket
 
 
-class BeamLiveloading(WebSocket):
-    """Interact with Beam liveloading."""
+class BeamConstellation(WebSocket):
+    """Interact with Beam Constellation."""
 
     URL = "wss://constellation.beam.pro"
 
@@ -30,14 +30,14 @@ class BeamLiveloading(WebSocket):
         self.user = user
 
     async def read(self, handle):
-        """Read packets from the liveloading WebSocket."""
+        """Read packets from the Constellation WebSocket."""
 
         packet = await self.parse(await self.receive())
 
         await super().read(handle)
 
     async def initialize(self, *interfaces):
-        """Subscribe to liveloading interfaces."""
+        """Subscribe to Constellation interfaces."""
 
         if not interfaces:
             interfaces = [
@@ -62,4 +62,4 @@ class BeamLiveloading(WebSocket):
         self.websocket.send_str(json.dumps(packet))
 
         print(await self.websocket.receive())
-        self.logger.info("Successfully subscribed to liveloading interfaces.")
+        self.logger.info("Successfully subscribed to Constellation interfaces.")
