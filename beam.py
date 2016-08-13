@@ -165,8 +165,6 @@ class Beam:
     def authenticate(self, *args):
         """Authenticate session to a Beam chat through a websocket."""
 
-        backoff = 0
-
         future = args[-1]
         if future.exception() is None:
             self.websocket = future.result()
@@ -181,10 +179,9 @@ class Beam:
             self.read_chat(self.handle)
         else:
             self.logger.error("There was an issue connecting.")
-            self.logger.error("Trying again in {} seconds.".format(backoff))
+            self.logger.error("Trying again in 10 seconds.")
 
-            time.sleep(min(2**backoff, 60))
-            backoff += 1
+            time.sleep(10)
 
             self.authenticate(*args)
 
