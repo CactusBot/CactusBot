@@ -29,6 +29,9 @@ class Beam:
 
         self.message_id = 0
         self.csrf_token = None
+        self.quiet = None
+        self.bot_id = None
+        self.channel_id = None
 
         self.http_session = Session()
 
@@ -136,10 +139,14 @@ class Beam:
     def connect(self, channel_id, bot_id, quiet=False):
         """Connect to a Beam chat through a websocket."""
 
+        self.channel_id = channel_id
+        self.bot_id = bot_id
+        self.quiet = quiet
+
         self.connection_information = {
-            "channel_id": channel_id,
-            "bot_id": bot_id,
-            "quiet": quiet
+            "channel_id": self.channel_id,
+            "bot_id": self.bot_id,
+            "quiet": self.quiet
         }
 
         chat = self.get_chat(channel_id)
@@ -183,7 +190,7 @@ class Beam:
 
             time.sleep(10)
 
-            self.authenticate(*args)
+            self.connect(self.channel_id, self.bot_id, self.quiet)
 
     def send_message(self, *args, method="msg"):
         """Send a message to a Beam chat through a websocket."""
