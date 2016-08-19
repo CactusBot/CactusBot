@@ -244,10 +244,6 @@ class PointsCommand(Command):
             amount=user.points,
             name=self.points_name + ('s' if user.points != 1 else ''))
 
-class QuirkyTest(Command)
-    def __call__(self, args=None, data=None):
-        return "Hai! This is a command!"
-
 class TemmieCommand(Command):
     quotes = [
         "fhsdhjfdsfjsddshjfsd",
