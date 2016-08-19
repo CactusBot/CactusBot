@@ -338,3 +338,75 @@ class SubCommand(Command):
     @role_specific("Subscriber", reply="sub")
     def __call__(self, args=None, data=None):
         return "I'm a subscriber! :salute"
+        
+class GiveawayCommand(Command):
+    is_running = False
+    candidates = []
+    wait_time = 60
+    start_message = "Giveaway in {} seconds! Enter with !giveaway join!"
+    def countdown(self):
+
+        if self.wait_time < 0:
+            PeriodicCallback(self.countdown, 1000).stop()
+            return ""
+        if self.wait_time == 0:
+            is_running = False
+            print(len(self.candidates))
+            if len(self.candidates) == 0:
+                return "Nobody joined the giveaway..."
+            else:
+                return "@{} has won the giveaway!".format(
+                choice(self.candidates))
+        self.wait_time = int(self.wait_time) - 1
+        print(self.wait_time)
+        if self.wait_time in [30, 10, 3, 2, 1]:
+            return("Giveaway ends in {} seconds!".format(self.wait_time))
+
+    def __call__(self, args, data):
+        if len(args) == 1:
+            return "Not enough arguements!"
+        if args[1].lower() == "join":
+            if self.is_running:
+                if data["user_name"] in self.candidates:
+                    return "You have already entered!"
+                else:
+                    print(self.candidates)
+                    self.candidates.append(data["user_name"])
+                    return "@{} You have entered the giveaway!".format(
+                    data["user_name"])
+            else:
+                return "No giveaway is running at the moment!"
+
+        elif args[1].lower() == "start":
+            if any(filter(lambda role: role in data["user_roles"],
+            ["Founder", "Staff", "Global Mod", "Mod", "Owner"])):
+                if self.is_running:
+                    return "A giveaway is already running!"
+                self.wait_time = 60
+                self.is_running = True
+                self.candidates = []
+                if len(args) > 1:
+                    try:
+                        self.wait_time = int(args[2])
+                    except:
+                        pass
+                PeriodicCallback(self.countdown, 1000).start()
+                return self.start_message.format(str(self.wait_time))
+            else:
+                return "This command is Mod-only!"
+        elif args[1].lower() == "end":
+            if any(filter(lambda role: role in data["user_roles"],
+            ["Founder", "Staff", "Global Mod", "Mod", "Owner"])):
+                if self.is_running:
+                    self.wait_time = -1
+                    self.is_running = False
+                    print(len(self.candidates))
+                    if len(self.candidates) == 0:
+                        return "Nobody joined the giveaway..."
+                    else:
+                        return "@{} has won the giveaway!".format(
+                        choice(self.candidates))
+                else:
+                    return "No giveaway is currently running!"
+            else:
+                return "This command is Mod-only!"
