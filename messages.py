@@ -89,7 +89,7 @@ class MessageHandler(Beam):
             session.commit()
 
         mod_roles = ("Owner", "Staff", "Founder", "Global Mod", "Mod")
-        if not (data["user_roles"][0] in mod_roles or user.friend):
+        if not (data["user_roles"][0] in mod_roles or user.friend or self.config["auth"]["username"] == data["user_name"]):
             if (len(parsed) > self.config["spam_protection"].get(
                     "maximum_message_length", 256)):
                 self.remove_message(data["id"])
