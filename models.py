@@ -347,14 +347,12 @@ class GiveawayCommand(Command):
             return ""
         if self.wait_time == 0:
             is_running = False
-            print(len(self.candidates))
             if len(self.candidates) == 0:
                 return "Nobody joined the giveaway..."
             else:
                 return "@{} has won the giveaway!".format(
                 choice(self.candidates))
         self.wait_time = int(self.wait_time) - 1
-        print(self.wait_time)
         if self.wait_time in [30, 10, 3, 2, 1]:
             return("Giveaway ends in {} seconds!".format(self.wait_time))
 
@@ -366,7 +364,6 @@ class GiveawayCommand(Command):
                 if data["user_name"] in self.candidates:
                     return "You have already entered!"
                 else:
-                    print(self.candidates)
                     self.candidates.append(data["user_name"])
                     return "@{} You have entered the giveaway!".format(
                     data["user_name"])
@@ -396,7 +393,6 @@ class GiveawayCommand(Command):
                 if self.is_running:
                     self.wait_time = -1
                     self.is_running = False
-                    print(len(self.candidates))
                     if len(self.candidates) == 0:
                         return "Nobody joined the giveaway..."
                     else:
