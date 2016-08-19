@@ -2,7 +2,7 @@ from beam import Beam
 from models import (Command, User, session, CommandCommand, QuoteCommand,
                     CubeCommand, SocialCommand, UptimeCommand, PointsCommand,
                     TemmieCommand, FriendCommand, SpamProtCommand, ProCommand,
-                    SubCommand)
+                    SubCommand, GiveawayCommand)
 from asyncio import async, coroutine
 from functools import partial
 from re import findall
@@ -32,8 +32,8 @@ class MessageHandler(Beam):
             "pro": ProCommand(),
             "sub": SubCommand(),
             "cube": CubeCommand(),
-            "temmie": TemmieCommand()
-            "quirkytest": QuirkyTest()
+            "temmie": TemmieCommand(),
+            "giveaway": GiveawayCommand()
         }
 
     def handle(self, response):
