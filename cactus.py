@@ -54,7 +54,6 @@ class Cactus(MessageHandler, Beam):
         self.debug = kwargs.get("debug", False)
 
         self.config_file = kwargs.get("config_file", "data/config.json")
-        self.stats_file = kwargs.get("stats_file", "data/stats.json")
         self.database = kwargs.get("database", "data/data.db")
 
         self.quiet = kwargs.get("quiet", False)
@@ -90,23 +89,6 @@ class Cactus(MessageHandler, Beam):
             raise FileNotFoundError("Configuration file not found.")
             exit()
 
-    def load_stats(self, filename):
-        """Load statistics file."""
-
-        self.logger.warning("Statistics are not yet implemented.")
-        return dict()
-
-        if exists(filename):
-            self.stats_file = filename
-            self.logger.info("Statistics file found. Loading...")
-            with open(filename) as stats:
-                self.stats = load(stats)
-                return self.stats
-        else:
-            self.logger.warn("Statistics file not found. Creating...")
-            copyfile("data/stats-template.json", "data/stats.json")
-            self.logger.info("Statistics file created.")
-
     def update_config(self, keys, value):
         """Update configuration file value."""
 
@@ -119,33 +101,18 @@ class Cactus(MessageHandler, Beam):
         self.config = config_data
         return self.config
 
-    def update_stats(self, keys, value):
-        """Update statistics file value."""
-
-        self.logger.warning("Statistics are not yet implemented.")
-        return
-
-        with open(self.stats_file, 'r') as stats:
-            stats_data = load(stats)
-            reduce(lambda d, k: d[k], keys.split('.')[:-1], stats_data)[
-                keys.split('.')[-1]] = value
-        with open(self.stats_file, 'w+') as stats:
-            dump(stats_data, stats, indent=2, sort_keys=True)
-        self.stats = stats_data
-        return self.stats
-
     def run(self, *args, **kwargs):
         """Run bot."""
 
         self.logger.info(cactus_art)
         self._init_database(self.database)
         self.load_config(filename=self.config_file)
-        self.load_stats(filename=self.stats_file)
         self.started = True
 
         while self.config.get("autorestart") or not self.started:
             try:
                 self.bot_data = self.login(**self.config["auth"])
+                self.bot_name = self.config["auth"]["username"]
                 self.logger.info("Authenticated as: {}.".format(
                     self.bot_data["username"]))
 
