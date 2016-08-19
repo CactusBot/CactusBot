@@ -402,3 +402,13 @@ class GiveawayCommand(Command):
                     return "No giveaway is currently running!"
             else:
                 return "This command is Mod-only!"
+        elif args[1].lower() == "cancel":
+            if any(filter(lambda role: role in data["user_roles"],
+            ["Founder", "Staff", "Global Mod", "Mod", "Owner"])):
+                if self.is_running:
+                    self.wait_time = -1
+                    return "Giveaway cancelled."
+                else:
+                    return "No giveaway is currently running!"
+            else:
+                return "This command is Mod-only!"
