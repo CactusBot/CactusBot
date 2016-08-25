@@ -492,10 +492,14 @@ class FriendCommand(Command):
             return "Not enough arguments."
         elif len(args) == 2:
             user = re.match(r'@?([A-Za-z0-9]{,32})', args[1])
+            print(user)
             if user is None:
                 return "Invalid username '{}'.".format(args[1])
 
-            channel_id = self.get_channel(user)
+            print(user.group())
+
+            channel_id = self.get_channel(user.group())
+            print(channel_id)
             if channel_id.get("statusCode") == 404:
                 return "User has not entered this channel."
 
@@ -504,7 +508,7 @@ class FriendCommand(Command):
                 query.friend = not query.friend
                 session.commit()
                 return "{}ed @{} as a friend.".format(
-                    ["Remov", "Add"][query.friend], user)
+                    ["Remov", "Add"][query.friend], user.group())
             else:
                 return "User has not entered this channel."
         elif len(args) > 2:
