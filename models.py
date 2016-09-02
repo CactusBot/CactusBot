@@ -500,7 +500,8 @@ class FriendCommand(Command):
             if channel_id.get("statusCode") == 404:
                 return "User has not entered this channel."
 
-            query = session.query(User).filter_by(id=channel_id["user"]["id"]).first()
+            query = session.query(User).filter_by(
+                id=channel_id["user"]["id"]).first()
             if query:
                 query.friend = not query.friend
                 session.commit()
@@ -558,17 +559,3 @@ class SpamProtCommand(Command):
                 return "Invalid true/false: '{}'.".format(args[2])
             return "Invalid argument: '{}'.".format(args[1])
         return "Not enough arguments."
-
-
-class ProCommand(Command):
-
-    @role_specific("Pro", reply="pro")
-    def __call__(self, args=None, data=None):
-        return "I'm such a Pro! B)"
-
-
-class SubCommand(Command):
-
-    @role_specific("Subscriber", reply="sub")
-    def __call__(self, args=None, data=None):
-        return "I'm a subscriber! :salute"

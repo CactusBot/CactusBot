@@ -29,19 +29,17 @@ class MessageHandler(Beam):
             "help": "Check out my documentation at cactusbot.readthedocs.org.",
             "command": CommandCommand(),
             "repeat": RepeatCommand(
-                self.send_message,
-                self.bot_data["username"],
-                self.channel_data["token"]),
+            self.send_message,
+            self.bot_data["username"],
+            self.channel_data["token"]),
             "quote": QuoteCommand(self.http_session),
             "social": SocialCommand(self.get_channel),
             "uptime": UptimeCommand(self._request),
             "friend": FriendCommand(self.get_channel),
-           "points": PointsCommand(self.config["points"]["name"]),
-            "spamprot": SpamProtCommand(self.update_config)
-           "pro": ProCommand(),
-           "sub": SubCommand(),
-           "cube": CubeCommand(),
-           "temmie": TemmieCommand()
+            "points": PointsCommand(self.config["points"]["name"]),
+            "spamprot": SpamProtCommand(self.update_config),
+            "cube": CubeCommand(),
+            "temmie": TemmieCommand()
         }
 
     def handle(self, response):
@@ -89,7 +87,8 @@ class MessageHandler(Beam):
             session.commit()
 
         mod_roles = ("Owner", "Staff", "Founder", "Global Mod", "Mod")
-        if not (data["user_roles"][0] in mod_roles or user.friend or self.bot_name == data["user_name"]):
+        if not (data["user_roles"][0] in mod_roles or user.friend or
+            self.bot_name == data["user_name"]):
             if (len(parsed) > self.config["spam_protection"].get(
                     "maximum_message_length", 256)):
                 self.remove_message(data["id"])
