@@ -491,7 +491,7 @@ class FriendCommand(Command):
         if len(args) < 2:
             return "Not enough arguments."
         elif len(args) == 2:
-            user = re.match(r'@?([A-Za-z0-9]{,32})', args[1])
+            user = re.match(r'@?([\w_-]*[a-z][\w_-]*', args[1])
             if user is None:
                 return "Invalid username '{}'.".format(args[1])
 
