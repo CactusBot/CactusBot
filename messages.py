@@ -5,8 +5,8 @@ import re
 from beam import Beam
 from models import (Command, User, session, CommandCommand, QuoteCommand,
                     CubeCommand, SocialCommand, UptimeCommand, PointsCommand,
-                    TemmieCommand, FriendCommand, SpamProtCommand, ProCommand,
-                    SubCommand, RepeatCommand)
+                    TemmieCommand, FriendCommand, SpamProtCommand,
+                    RepeatCommand)
 
 
 class MessageHandler(Beam):
@@ -38,8 +38,6 @@ class MessageHandler(Beam):
             "friend": FriendCommand(self.get_channel),
             "points": PointsCommand(self.config["points"]["name"]),
             "spamprot": SpamProtCommand(self.update_config),
-            "pro": ProCommand(),
-            "sub": SubCommand(),
             "cube": CubeCommand(),
             "temmie": TemmieCommand()
         }
@@ -89,7 +87,8 @@ class MessageHandler(Beam):
             session.commit()
 
         mod_roles = ("Owner", "Staff", "Founder", "Global Mod", "Mod")
-        if not (data["user_roles"][0] in mod_roles or user.friend):
+        if not (data["user_roles"][0] in mod_roles or user.friend or
+                self.bot_name.lower() == data["user_name"].lower()):
             if (len(parsed) > self.config["spam_protection"].get(
                     "maximum_message_length", 256)):
                 self.remove_message(data["id"])
