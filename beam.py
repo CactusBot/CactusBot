@@ -294,134 +294,106 @@ class Beam:
                 if callable(handler):
                     handler(response)
 
-    def connect_to_liveloading(self, channel_id, user_id):
+    def connect_to_constellation(self, channel_id, user_id):
         """Connect to Beam liveloading."""
 
-        self.liveloading_connection_information = {
+        self.constellation_connection_information = {
             "channel_id": channel_id,
             "user_id": user_id
         }
 
-        liveloading_websocket_connection = websocket_connect(
-            "wss://realtime.beam.pro/socket.io/?EIO=3&transport=websocket")
-        liveloading_websocket_connection.add_done_callback(
+        constellation_websocket_connection = websocket_connect(
+            "wss://constellation.beam.pro")
+        constellation_websocket_connection.add_done_callback(
             partial(self.subscribe_to_liveloading, channel_id, user_id))
 
     def subscribe_to_liveloading(self, channel_id, user_id, future):
-        """Subscribe to Beam liveloading."""
+        """Subscribe to Beam constellation."""
 
         if future.exception() is None:
-            self.liveloading_websocket = future.result()
+            self.constellation_websocket = future.result()
 
             self.logger.info(
-                "Successfully connected to liveloading websocket.")
+                "Successfully connected to constellation websocket.")
 
-            interfaces = (
-                "channel:{channel_id}:update",
-                "channel:{channel_id}:followed",
-                "channel:{channel_id}:subscribed",
-                "channel:{channel_id}:resubscribed",
-                "channel:{channel_id}:hosted",
-                "user:{user_id}:update"
-            )
-            self.subscribe_to_interfaces(
-                *tuple(
-                    interface.format(channel_id=channel_id, user_id=user_id)
-                    for interface in interfaces
-                )
-            )
+            interfaces = [
+                "channel:{channel}:update".format(channel=channel_id),
+                "channel:{channel}:followed".format(channel=channel_id),
+                "channel:{channel}:subscribed".format(channel=channel_id),
+                "channel:{channel}:resubscribed".format(channel=channel_id),
+                "channel:{channel}:hosted".format(channel=channel_id),
+                "user:{user}:update".format(user=user_id)
+            ]
+            self.subscribe_to_interfaces(interfaces)
 
             self.logger.info(
-                "Successfully subscribed to liveloading interfaces.")
+                "Successfully subscribed to Constellation interfaces.")
 
-            self.watch_liveloading()
+            self.watch_constellation()
         else:
             self.logger.warning(future.exception())
-            self.connect_to_liveloading(channel_id, user_id)
+            self.connect_to_constellation(channel_id, user_id)
 
-    def subscribe_to_interfaces(self, *interfaces):
-        """Subscribe to a Beam liveloading interface."""
+    def subscribe_to_interfaces(self, interfaces: list):
+        """Subscribe to a Beam constellation interface."""
 
-        packet = [
-            "put",
-            {
-                "method": "put",
-                "headers": {},
-                "data": {
-                    "slug": interfaces
-                },
-                "url": "/api/v1/live"
-            }
-        ]
-        self.liveloading_websocket.write_message('420' + dumps(packet))
-
-    def parse_liveloading_message(self, message):
-        """Parse a message received from the Beam liveloading websocket."""
-
-        sections = re.match(r"(\d+)(.+)?$", message).groups()
-
-        return {
-            "code": sections[0],
-            "data": loads(sections[1]) if sections[1] is not None else None
+        packet = {
+            "type": "method",
+            "method": "livesubscribe",
+            "params": {
+                "events": interfaces
+            },
+            "id": 1
         }
+        self.constellation_websocket.write_message(dumps(packet))
+
+    def parse_constellation_message(self, packet):
+        try:
+            packet = loads(packet)
+        except:
+            return ""
+        else:
+            if "data" in packet and "payload" in packet["data"]:
+                return packet["data"]
+            else:
+                return ""
 
     @coroutine
-    def watch_liveloading(self, handler=None):
+    def watch_constellation(self):
         """Watch and handle packets from the Beam liveloading websocket."""
 
-        response = yield self.liveloading_websocket.read_message()
+        response = yield self.constellation_websocket.read_message()
         if response is None:
             raise ConnectionError
 
-        packet = self.parse_liveloading_message(response)
-
-        PeriodicCallback(
-            partial(self.liveloading_websocket.write_message, '2'),
-            packet["data"]["pingInterval"]
-        ).start()
-
         while True:
-            message = yield self.liveloading_websocket.read_message()
-
-            if message is None:
-                self.logger.info("Connection to Liveloading lost.")
-                self.logger.info("Attempting to reconnect.")
-
-                return self.connect_to_liveloading(
-                    **self.liveloading_connection_information)
-
-                self.logger.info("Attempting to reconnect.")
-                self.watch_liveloading()
-
-            packet = self.parse_liveloading_message(message)
-
-            if packet.get("data") is not None:
-                self.logger.debug("LIVE: {}".format(packet))
-
-            if isinstance(packet["data"], list):
-                if isinstance(packet["data"][0], str):
-                    if packet["data"][1].get("following"):
+            message = yield self.constellation_websocket.read_message()
+            message = self.parse_constellation_message(message)
+            if message is None or message is "":
+                pass
+            else:
+                self.logger.debug("LIVE: {}".format(message))
+                if "followed" in message["channel"]:
+                    if message["payload"]["following"]:
+                        self.send_message("Thanks for the follow, @{} !".format(
+                            message["payload"]["user"]["username"]))
                         self.logger.info("- {} followed.".format(
-                            packet["data"][1]["user"]["username"]))
+                            message["payload"]["user"]["username"]))
+                elif "subscribed" in message["channel"]:
+                    self.send_message("Thanks for subscribing, @{} !".format(
+                        message["payload"]["user"]["username"]
+                    ))
+                elif "resubscribed" in message["channel"]:
+                    self.send_message("Thanks for subscribing, @{} !".format(
+                        message["payload"]["user"]["username"]
+                    ))
 
-                        user = session.query(User).filter_by(
-                            id=packet["data"][1]["user"]["id"]).first()
-                        if user and (datetime.now() - user.follow_date).days:
-                            self.send_message(
-                                "Thanks for the follow, @{}!".format(
-                                    packet["data"][1]["user"]["username"]))
-                            user.follow_date = datetime.now()
-                            session.add(user)
-                            session.commit()
-                    elif packet["data"][1].get("subscribed"):
-                        self.logger.info("- {} subscribed.".format(
-                            packet["data"][1]["user"]["username"]))
-                        self.send_message(
-                            "Thanks for the subscription, @{}! <3".format(
-                                packet["data"][1]["user"]["username"]))
-                    elif packet["data"][1].get("hoster"):
-                        self.logger.info("- {} hosted the channel.".format(
-                            packet["data"][1]["hoster"]["token"]))
-                        self.send_message(
-                            "Thanks for hosting the channel, @{}!".format(
-                                packet["data"][1]["hoster"]["token"]))
+            # if message is None:
+            #     self.logger.info("Connection to Constellation lost.")
+            #     self.logger.info("Attempting to reconnect.")
+
+            #     return self.connect_to_constellation(
+            #         **self.constellation_connection_information)
+
+            #     self.logger.info("Attempting to reconnect.")
+            #     self.watch_constellation()

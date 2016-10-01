@@ -129,7 +129,7 @@ class Cactus(MessageHandler, Beam):
 
                 def connect_liveloading():
                     try:
-                        self.connect_to_liveloading(
+                        self.connect_to_constellation(
                             self.channel_data["id"],
                             self.channel_data["userId"])
                     except ConnectionError as e:
