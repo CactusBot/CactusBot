@@ -375,7 +375,7 @@ class Beam:
                     if message["payload"]["following"]:
                         self.send_message(
                             "Thanks for the follow, @{} !".format(
-                            message["payload"]["user"]["username"]))
+                                message["payload"]["user"]["username"]))
                         self.logger.info("- {} followed.".format(
                             message["payload"]["user"]["username"]))
                 elif "subscribed" in message["channel"]:
