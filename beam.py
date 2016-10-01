@@ -2,7 +2,6 @@
 
 from tornado.websocket import websocket_connect
 from tornado.gen import coroutine
-from tornado.ioloop import PeriodicCallback
 
 from requests import Session
 from requests.compat import urljoin
@@ -18,7 +17,6 @@ import re
 import time
 
 from models import User, session
-from datetime import datetime
 
 
 class Beam:
@@ -375,7 +373,8 @@ class Beam:
                 self.logger.debug("LIVE: {}".format(message))
                 if "followed" in message["channel"]:
                     if message["payload"]["following"]:
-                        self.send_message("Thanks for the follow, @{} !".format(
+                        self.send_message(
+                            "Thanks for the follow, @{} !".format(
                             message["payload"]["user"]["username"]))
                         self.logger.info("- {} followed.".format(
                             message["payload"]["user"]["username"]))
