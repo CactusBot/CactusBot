@@ -23,6 +23,7 @@ class CacheUtils:
             json.dump(cachedata, cache, indent=2)
 
     def return_data(self, user):
+        """ Returns the data in cache for specified location. """
         with open(self.filename) as cache:
             cachedata = json.load(cache)
             return cachedata[user]

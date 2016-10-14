@@ -10,20 +10,20 @@ import calendar
 class EventHandler(Handler):
     """Events handler."""
 
-    def __init__(self, cache_data):
+    def __init__(self, config_data):
         super().__init__()
 
         self.cache = CacheUtils("caches/followers.json")
-        self.cache_follows = cache_data["CACHE_FOLLOWS"]
-        self.follow_time = cache_data["CACHE_FOLLOWS_TIME"] * 60
+        self.cache_follows = config_data["CACHE_FOLLOWS"]
+        self.follow_time = config_data["CACHE_FOLLOWS_TIME"] * 60
+        self.follow_message = config_data["FOLLOW_MESSAGE"]
+        self.sub_message = config_data["SUB_MESSAGE"]
+        self.host_message = config_data["HOST_MESSAGE"]
 
     def on_follow(self, packet):
         """Handle follow packets."""
         def on_follow_return():
-            # TODO: Make configurable
-            return MessagePacket(
-                "Thanks for following, @{} !".format(packet.user)
-            )
+            return MessagePacket(self.follow_message.format(packet.user))
 
         if packet.success:
             if self.cache_follows:
@@ -42,11 +42,9 @@ class EventHandler(Handler):
     def on_subscribe(self, packet):
         """Handle subscription packets."""
         # TODO: Make configurable
-        return MessagePacket(
-            "Thanks for subscribing, @{} !".format(packet.user)
-        )
+        return MessagePacket(self.sub_message.format(packet.user))
 
     def on_host(self, packet):
         """Handle host packets."""
         # TODO: Make configurable
-        return MessagePacket("Thanks for hosting, @{} !".format(packet.user))
+        return MessagePacket(self.host_message.format(packet.user))

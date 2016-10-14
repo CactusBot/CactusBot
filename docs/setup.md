@@ -21,6 +21,8 @@ To keep down spam, you may wish to cache the followers, this can be done by chan
 `CACHE_FOLLOWS = True`
 Aditionally if you wish to only cache the users for a set time, you can change `CACHE_FOLLOWS_TIME` to a time in minutes. If left at 0, the users will be cached FOREVER (Mwahaha).
 
+To have custom messages for events such as a follower or a subscriber change the `FOLLOW_MESSAGE`, `SUB_MESSAGE`, or `HOST_MESSAGE` to whatever you want, `{0}` in the message will be replaced with the player name.
+
 # Control
 
 ## Bot Activation
