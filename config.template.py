@@ -5,8 +5,7 @@ from cactusbot.handlers import (CommandHandler, EventHandler, LoggingHandler,
                                 SpamHandler)
 from cactusbot.services.beam.handler import BeamHandler
 
-USERNAME = "BotUsername"
-PASSWORD = "BotPassword"
+AUTH = ("BotUsername", "BotPassword")
 
 CHANNEL = "ChannelName"
 

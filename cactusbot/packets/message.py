@@ -93,7 +93,9 @@ class MessagePacket(Packet):
     def json(self):
         """JSON representation of the packet."""
         return {
-            "message": [component._asdict() for component in self.message],
+            "message": [
+                dict(component._asdict()) for component in self.message
+            ],
             "user": self.user,
             "role": self.role,
             "action": self.action,

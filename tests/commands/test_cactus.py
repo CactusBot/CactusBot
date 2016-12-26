@@ -5,7 +5,7 @@ from cactusbot.commands.magic import Cactus
 
 @pytest.mark.asyncio
 async def test_default():
-    assert (await Cactus()).text == "Ohai! I'm CactusBot! :cactus:"
+    assert (await Cactus()).text == "Ohai! I'm CactusBot! 🌵"
 
 
 @pytest.mark.asyncio

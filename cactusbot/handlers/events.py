@@ -19,10 +19,7 @@ class EventHandler(Handler):
             minutes=cache_data["CACHE_FOLLOWS_TIME"])
 
     async def on_start(self, _):
-        return MessagePacket(
-            "CactusBot activated. ",
-            ("emoji", ":cactus:", ":cactus:")
-        )
+        return MessagePacket("CactusBot activated. ", ("emoji", "🌵"))
 
     async def on_follow(self, packet):
         """Handle follow packets."""

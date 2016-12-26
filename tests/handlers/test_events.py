@@ -14,7 +14,7 @@ async def test_on_message():
 
     assert (await event_handler.on_start(
         None
-    )).text == "CactusBot activated. :cactus:"
+    )).text == "CactusBot activated. 🌵"
 
 
 @pytest.mark.asyncio

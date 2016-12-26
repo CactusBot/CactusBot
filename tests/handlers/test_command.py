@@ -20,7 +20,7 @@ def verify(message, expected, *args, **kwargs):
 async def test_on_message():
     assert (await command_handler.on_message(
         MessagePacket("!cactus")
-    )).text == "Ohai! I'm CactusBot! :cactus:"
+    )).text == "Ohai! I'm CactusBot! 🌵"
 
 
 def test_inject_argn():

@@ -62,7 +62,7 @@ class Quote(Command):
         except Exception:
             return MessagePacket(
                 "Unable to get an inspirational quote. Have a ",
-                ("emoji", ":hamster:", ":hamster"),
+                ("emoji", "🐹", "🐹"),
                 " instead."
             )
         else:

@@ -54,7 +54,7 @@ def test_parse_message():
             "text": "waves "
         }, {
             "type": "emoji",
-            "data": ":smiley:",
+            "data": "😃",
             "text": ":D"
         }],
         "user": "Stanley",
@@ -250,7 +250,7 @@ def test_synthesize():
         "Hey, ",
         ("tag", "Stanley"),
         "! ",
-        ("emoji", ":cactus:"),
+        ("emoji", "🌵"),
         " Check out ",
         ("link", "https://cactusbot.rtfd.org", "cactusbot.rtfd.org"),
         "!"
