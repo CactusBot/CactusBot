@@ -12,7 +12,7 @@ class Quote(Command):
     COMMAND = "quote"
 
     @Command.command(hidden=True)
-    async def default(self, quote_id: r'[1-9]\d*'=None):
+    async def default(self, quote_id: r'[0-9]\d*'=None):
         """Get a quote based on ID. If no ID is provided, pick a random one."""
 
         if quote_id is None:
@@ -35,7 +35,7 @@ class Quote(Command):
             data["data"]["attributes"]["quoteId"])
 
     @Command.command()
-    async def edit(self, quote_id: r'[1-9]\d*', *quote):
+    async def edit(self, quote_id: r'[0-9]\d*', *quote):
         """Edit a quote based on ID."""
         response = await self.api.edit_quote(quote_id, ' '.join(quote))
         if response.status == 201:
@@ -43,7 +43,7 @@ class Quote(Command):
         return "Edited quote with ID {}.".format(quote_id)
 
     @Command.command()
-    async def remove(self, quote_id: r'[1-9]\d*'):
+    async def remove(self, quote_id: r'[0-9]\d*'):
         """Remove a quote."""
         response = await self.api.remove_quote(quote_id)
         if response.status == 404:
