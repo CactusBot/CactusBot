@@ -78,8 +78,8 @@ class CommandHandler(Handler):
                 return MessagePacket("Command not found.", target=packet.user)
 
     async def custom_response(self, _packet, command, *args, **data):
-
         response = await self.api.get_command(command)
+
         if response.status == 200:
             json = await response.json()
             json = json["data"]["attributes"]
@@ -89,16 +89,23 @@ class CommandHandler(Handler):
 
             if response.status == 200:
                 json = await response.json()
+                json = json["data"]["attributes"]
 
                 args = tuple(MessagePacket(
-                    *json["data"]["attributes"]["arguments"]
+                    *json["arguments"]
                 ).text.split()) + args
-                command_name = json["data"]["attributes"]["commandName"]
+                command_name = json["commandName"]
 
-                json = json["data"]["attributes"]["command"]
+                json = json["command"]
 
             else:
                 return
+
+        can_run = await self.check_role(_packet.role, json["userLevel"])
+        if not can_run:
+            return MessagePacket(
+                ("text", "Role level '{role}' or higher required.".format(
+                    role=json["userLevel"])), target=_packet.user)
 
         json["target"] = _packet.user if _packet.target else None
 
@@ -172,3 +179,8 @@ class CommandHandler(Handler):
 
     async def on_repeat(self, packet):
         return packet
+
+    async def check_role(self, user_role, command_role):
+        """Compare the role of a user and a command"""
+
+        return user_role >= command_role
