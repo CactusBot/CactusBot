@@ -60,7 +60,7 @@ class CommandHandler(Handler):
 
             else:
 
-                split = packet.split()
+                split = packet.split()[:-1]
                 hyphenated_options = (((split[:index]), split[index:])
                                       for index in range(len(split), 0, -1))
 
