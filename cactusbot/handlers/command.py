@@ -194,6 +194,5 @@ class CommandHandler(Handler):
                 except IndexError:
                     return None
 
-
     async def on_repeat(self, packet):
         return packet
