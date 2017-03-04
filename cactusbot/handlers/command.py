@@ -129,14 +129,23 @@ class CommandHandler(Handler):
             argn, default, modifiers = match.groups()
             argn = int(argn)
 
+            print("argn", argn)
+            print("default", default)
+            print("modifiers", modifiers)
+            print("match", match)
+
             if default is None:
                 result = args[argn]
+                print("def", result)
             else:
                 result = args[argn] if argn < len(args) else default
+                print("else", result)
 
             if modifiers is not None:
                 result = self._modify(result, *modifiers.split('|')[1:])
+                print("none", result)
 
+            print("final", result)
             return result
 
         try:
@@ -156,6 +165,8 @@ class CommandHandler(Handler):
 
             if modifiers is not None:
                 result = self._modify(result, *modifiers.split('|')[1:])
+                if result is None:
+                    return "Not enough arguments!"
 
             return result
 
@@ -177,9 +188,12 @@ class CommandHandler(Handler):
 
         for modifier in modifiers:
             if modifier in self.MODIFIERS:
-                argument = self.MODIFIERS[modifier](argument)
+                try:
+                    argument = self.MODIFIERS[modifier](argument)
+                    return argument
+                except IndexError:
+                    return None
 
-        return argument
 
     async def on_repeat(self, packet):
         return packet
