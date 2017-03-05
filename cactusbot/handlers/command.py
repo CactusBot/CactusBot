@@ -178,7 +178,7 @@ class CommandHandler(Handler):
         for modifier in modifiers:
             if modifier in self.MODIFIERS:
                 argument = self.MODIFIERS[modifier](argument)
-            return argument
+                return argument
 
     async def on_repeat(self, packet):
         return packet
