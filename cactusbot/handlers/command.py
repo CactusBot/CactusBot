@@ -157,6 +157,8 @@ class CommandHandler(Handler):
 
             if modifiers is not None:
                 result = self._modify(result, *modifiers.split('|')[1:])
+                if result is None:
+                    return "Not enough arguments!"
 
             return result
 
@@ -178,9 +180,11 @@ class CommandHandler(Handler):
 
         for modifier in modifiers:
             if modifier in self.MODIFIERS:
-                argument = self.MODIFIERS[modifier](argument)
-
-        return argument
+                try:
+                    argument = self.MODIFIERS[modifier](argument)
+                    return argument
+                except IndexError:
+                    return None
 
     async def on_repeat(self, packet):
         return packet
