@@ -191,7 +191,7 @@ command = Meta(MockAPI())
 @pytest.mark.asyncio
 async def test_command_add():
     """Add a command."""
-    packet = MessagePacket(("text", "lol"), ("emoji", "😃"), role=5)
+    packet = MessagePacket(("text", "lol"), ("emoji", ""), role=5)
     assert (await command("add", "testing", packet, packet=packet)) == "Updated command !testing."
 
 @pytest.mark.asyncio
