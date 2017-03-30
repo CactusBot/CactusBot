@@ -68,6 +68,17 @@ Change the output of variables. To use a modifier, append `|` and the modifier t
 
 Multiple modifiers may be chained, and will be evaluated from left to right.
 
+## `=` (Default)
+Any variable can be assigned a default by adding `=` and then whatever you want to be the default after it
+```
+[Alkali] !command add alkali Alkali is a %ARG1=Metal%
+[CactusBot] Added command !alkali.
+[Alkali] !alkali
+[CactusBot] Alkali is a Metal
+[Innectic] !alkali potato
+[CactusBot] ALkali is a potato
+```
+
 ## `upper`
 
 Replace all lowercase letters with their uppercase equivalents.
