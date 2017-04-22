@@ -88,4 +88,5 @@ class SpamHandler(Handler):
     def contains_urls(self, packet):
         """Check for URLs in the message."""
         return not self.config["allow_urls"] and any(
-            chunk.type == "url" for chunk in packet)
+            chunk.type == "url" and not
+                chunk.text.strip() == "d.va" for chunk in packet)
