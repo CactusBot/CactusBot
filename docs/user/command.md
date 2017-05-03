@@ -87,3 +87,21 @@ Otherwise, `action` may begin with either a `+` or `-`, to increase or decrease 
 [MindlessPuppetz] !command count derp +12
 [CactusBot] Count updated.
 ```
+
+## `!command role <command> [role]`
+
+Retrieve or set the `role` of a custom command.
+
+If `role` is not supplied, the current `role` is returned.
+
+```
+[EvilNotion] !command role magical
+[CactusBot] Minimum role for !magical is 'Moderator'
+```
+
+Otherwise, the role is set:
+
+```
+[HauntedKnight] !command role magical User
+[CactusBot] Updated role for !magical to 'User'
+```

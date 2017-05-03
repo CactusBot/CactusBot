@@ -142,5 +142,5 @@ class Meta(Command):
             return "Invalid role {}".format(role)
         response = await _update_role(self.api, command, role)
         if response.status == 200:
-            return "Updated role for !{command} to {role}".format(
+            return "Updated role for !{command} to '{role}'".format(
                 command=command, role=role)
