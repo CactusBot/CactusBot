@@ -1,6 +1,32 @@
 """Manage commands."""
 
 from . import Command
+from ..command import ROLES
+
+_ROLE_NAMES = [ROLES[role].lower() for role in ROLES]
+_REVERSED_ROLES = {v: k for k, v in ROLES.items()}
+
+
+def _role_id(role_name):
+    return _REVERSED_ROLES[role_name] if role_name in _REVERSED_ROLES else -1
+
+
+def _is_role(role):
+    return role.lower() in _ROLE_NAMES
+
+
+async def _update_role(api, command, role):
+    """Update the role of a command."""
+
+    data = {
+        "attributes": {
+            "response": {
+                "role": role
+            }
+        }
+    }
+
+    return await api.command.update(command, data)
 
 
 class Meta(Command):
@@ -91,3 +117,30 @@ class Meta(Command):
         response = await self.api.command.update_count(command, action_string)
         if response.status == 200:
             return "Count updated."
+
+    @Command.command(role="moderator")
+    async def permission(self, command: r'?command', role=None):
+        """Change the role of a command."""
+
+        if role is None:
+            # Didn't get a value, return the role of the command
+            response = await self.api.command.get(command)
+
+            if response.status == 200:
+                data = await response.json()
+                minimum_role = data["data"]["attributes"]["response"]["role"]
+                return "Minimum role for !{command} is '{role}'".format(
+                    command=command, role=ROLES[minimum_role])
+
+        valid_role = _is_role(role)
+        if not valid_role:
+            # not a real role, tell the user.
+            return "'{role}' is not a valid role!".format(role=role)
+        # Valid role, update it.
+        role_id = _role_id(role)
+        if role_id == -1:
+            return "Invalid role {}".format(role)
+        response = await _update_role(self.api, command, role)
+        if response.status == 200:
+            return "Updated role for !{command} to {role}".format(
+                command=command, role=role)
