@@ -8,10 +8,12 @@ _REVERSED_ROLES = {v: k for k, v in ROLES.items()}
 
 
 def _role_id(role_name):
-    return _REVERSED_ROLES[role_name] if role_name in _REVERSED_ROLES else -1
+    """Get the ID of a role from the name."""
+    return _REVERSED_ROLES[role_name] if role_name in _REVERSED_ROLES else None
 
 
 def _is_role(role):
+    """Does a role name exist?"""
     return role.lower() in _ROLE_NAMES
 
 
@@ -134,11 +136,11 @@ class Meta(Command):
 
         valid_role = _is_role(role)
         if not valid_role:
-            # not a real role, tell the user.
+            # Not a real role, tell the user.
             return "'{role}' is not a valid role!".format(role=role)
         # Valid role, update it.
         role_id = _role_id(role)
-        if role_id == -1:
+        if role_id == None:
             return "Invalid role {}".format(role)
         response = await _update_role(self.api, command, role)
         if response.status == 200:
