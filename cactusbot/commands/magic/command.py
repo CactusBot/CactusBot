@@ -21,10 +21,8 @@ async def _update_role(api, command, role):
     """Update the role of a command."""
 
     data = {
-        "attributes": {
-            "response": {
-                "role": role
-            }
+        "response": {
+            "role": role
         }
     }
 
@@ -140,9 +138,12 @@ class Meta(Command):
             return "'{role}' is not a valid role!".format(role=role)
         # Valid role, update it.
         role_id = _role_id(role)
+        print("STuff", role_id)
         if role_id == None:
             return "Invalid role {}".format(role)
-        response = await _update_role(self.api, command, role)
+        response = await _update_role(self.api, command, role_id)
         if response.status == 200:
             return "Updated role for !{command} to '{role}'".format(
                 command=command, role=role)
+        else:
+            return "An error occurred."
