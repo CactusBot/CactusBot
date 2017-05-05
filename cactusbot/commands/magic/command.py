@@ -136,14 +136,14 @@ class Meta(Command):
         if not valid_role:
             # Not a real role, tell the user.
             return "'{role}' is not a valid role!".format(role=role)
+
         # Valid role, update it.
         role_id = _role_id(role)
-        print("STuff", role_id)
-        if role_id == None:
+        if role_id is None:
             return "Invalid role {}".format(role)
+
         response = await _update_role(self.api, command, role_id)
         if response.status == 200:
             return "Updated role for !{command} to '{role}'".format(
                 command=command, role=role)
-        else:
-            return "An error occurred."
+        return "An error occurred."
