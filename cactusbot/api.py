@@ -183,6 +183,12 @@ class Command(CactusAPIBucket):
             self.api.patch("/user/{token}/command/{command}/count".format(
                 token=self.api.token, command=command), data=json.dumps(data)))
 
+    async def update(self, command, value):
+        """Update command attributes."""
+
+        return await self.api.patch("/user/{token}/command/{command}".format(
+            token=self.api.token, command=command), data=json.dumps(value))
+
 
 class Config(CactusAPIBucket):
     """CactusAPI /config bucket."""
